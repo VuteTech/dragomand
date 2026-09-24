@@ -1,0 +1,50 @@
+# Builds the website and user documentation (doc/ + mkdocs-theme/) with
+# mkdocs and deploys it to GitHub Pages. This replaces the Hugo workflow
+# of the retired dragomand.l10n-bg.dev repository; doc/CNAME carries the
+# custom domain. Enable Pages (source: GitHub Actions) in the repository
+# settings before the first run.
+name: Deploy site to Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install mkdocs
+        run: pip install mkdocs==1.6.1 mkdocs-static-i18n==1.3.1
+      - name: Build
+        run: mkdocs build --strict
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

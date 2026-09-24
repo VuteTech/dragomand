@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all --check
+
+  # Pure-Rust signal, fast: no C++ engine (--no-default-features).
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --workspace --all-targets --no-default-features -- -D warnings
+
+  test:
+    name: test (fake backend)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace --no-default-features
+
+  # The declared minimum (rust-version in Cargo.toml) is the rustc that
+  # Debian 13 ships. Stable alone notices neither newer syntax in our code
+  # nor a dependency that needs a newer compiler than it declares.
+  msrv:
+    name: test (MSRV 1.85)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.85
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --locked --workspace --no-default-features
+
+  # Full build with the C++ engine; slow on a cold ccache.
+  engine:
+    name: engine + full tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: engine
+      - name: Install engine dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libopenblas-dev liblapack-dev libpcre2-dev zstd
+      - name: Build engine
+        run: |
+          cmake -S engine -B engine/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --build engine/build -j 2
+      - name: Clippy and tests with the real engine
+        env:
+          DRAGOMAN_ENGINE_LIB_DIR: ${{ github.workspace }}/engine/build
+        run: |
+          cargo clippy --workspace --all-targets --all-features -- -D warnings
+          cargo test --workspace --all-features
+
+  deny:
+    name: cargo deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check

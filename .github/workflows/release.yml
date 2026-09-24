@@ -1,0 +1,145 @@
+# Publishes distribution packages when a GitHub release is published.
+#
+# The release tag must be vX.Y.Z and match the workspace version in
+# Cargo.toml. The job builds the vendored source tarball (every crate
+# included, so build farms need no network), attaches it to the GitHub
+# release, commits it with one build recipe per package format to the OBS
+# package, and waits for OBS to build it for every repository and
+# architecture configured in the project. OBS publishes the results to
+# its download repositories itself.
+#
+# Setup (once): repository secrets OBS_USER and OBS_PASSWORD for an
+# account with maintainer rights on the project below. OBS has no token
+# that can upload sources, so the workflow logs in with the password.
+# See docs/packaging.md "Open Build Service".
+name: Release packages
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing release tag to (re)publish, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: write # attach the tarball to the release
+
+concurrency:
+  group: release-packages
+  cancel-in-progress: false
+
+env:
+  OBS_API: https://api.opensuse.org
+  OBS_PROJECT: home:blago:dragomand
+  OBS_PACKAGE: dragomand
+
+jobs:
+  obs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - name: Validate the tag
+        id: tag
+        env:
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [[ ! "$TAG" =~ ^v([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "::error::release tag must look like v1.2.3, got '$TAG'"
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${BASH_REMATCH[1]}" >> "$GITHUB_OUTPUT"
+
+      - name: Check out the tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.tag }}
+
+      - name: Check the tag against Cargo.toml
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          cargo_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)"
+          if [ "$cargo_version" != "$VERSION" ]; then
+            echo "::error::tag says $VERSION but Cargo.toml says $cargo_version"
+            exit 1
+          fi
+
+      - name: Build the vendored source tarball
+        run: scripts/make-release-tarball.sh --vendor dist
+
+      - name: Assemble the OBS package
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          packaging/obs/prepare.sh "$VERSION" "dist/dragomand-$VERSION.tar.gz" obs-package
+
+      - name: Attach the tarball to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          cd dist
+          sha256sum "dragomand-$VERSION.tar.gz" > "dragomand-$VERSION.tar.gz.sha256"
+          gh release upload "$TAG" "dragomand-$VERSION.tar.gz" \
+            "dragomand-$VERSION.tar.gz.sha256" --clobber
+
+      - name: Install and configure osc
+        env:
+          OBS_USER: ${{ secrets.OBS_USER }}
+          OBS_PASSWORD: ${{ secrets.OBS_PASSWORD }}
+        run: |
+          if [ -z "$OBS_USER" ] || [ -z "$OBS_PASSWORD" ]; then
+            echo "::error::the OBS_USER and OBS_PASSWORD secrets are not set"
+            exit 1
+          fi
+          pipx install osc
+          umask 077
+          mkdir -p ~/.config/osc
+          cat > ~/.config/osc/oscrc <<EOF
+          [general]
+          apiurl = $OBS_API
+
+          [$OBS_API]
+          user = $OBS_USER
+          pass = $OBS_PASSWORD
+          credentials_mgr_class = osc.credentials.PlaintextConfigFileCredentialsManager
+          EOF
+
+      - name: Commit to OBS
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          if ! osc meta pkg "$OBS_PROJECT" "$OBS_PACKAGE" > /dev/null 2>&1; then
+            osc meta pkg "$OBS_PROJECT" "$OBS_PACKAGE" -F - <<EOF
+          <package name="$OBS_PACKAGE" project="$OBS_PROJECT">
+            <title>Dragomand</title>
+            <description>Offline machine translation daemon for the desktop, over D-Bus.</description>
+            <url>https://dragomand.l10n-bg.dev</url>
+          </package>
+          EOF
+          fi
+          osc checkout -o checkout "$OBS_PROJECT" "$OBS_PACKAGE"
+          cd checkout
+          # Replace everything: the old tarball must go, and a recipe
+          # dropped from the repository must disappear from OBS too.
+          find . -maxdepth 1 -type f ! -name '.*' -delete
+          cp ../obs-package/* .
+          osc addremove
+          osc commit -m "Release $TAG"
+
+      - name: Wait for the OBS builds
+        run: |
+          # Give the scheduler a moment to notice the new sources.
+          sleep 60
+          osc results --watch "$OBS_PROJECT" "$OBS_PACKAGE" > /dev/null || true
+          osc results "$OBS_PROJECT" "$OBS_PACKAGE"
+          if osc results --csv "$OBS_PROJECT" "$OBS_PACKAGE" |
+              grep -E '(failed|unresolvable|broken)'; then
+            echo "::error::some OBS builds did not succeed; see https://build.opensuse.org/package/show/$OBS_PROJECT/$OBS_PACKAGE"
+            exit 1
+          fi

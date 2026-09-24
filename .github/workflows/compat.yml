@@ -1,0 +1,40 @@
+name: Model compatibility
+
+# Detects Mozilla model releases the pinned engine cannot load. Runs
+# weekly and by hand; run it after every engine pin bump.
+
+on:
+  schedule:
+    - cron: "17 4 * * 1" # Mondays 04:17 UTC
+  workflow_dispatch:
+    inputs:
+      pairs:
+        description: "Pairs to check (comma-separated, or 'all')"
+        default: "all"
+
+jobs:
+  compat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: engine
+      - name: Install engine dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build libopenblas-dev liblapack-dev libpcre2-dev zstd
+      - name: Build engine
+        run: |
+          cmake -S engine -B engine/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          cmake --build engine/build -j 2
+      - name: Compatibility sweep
+        env:
+          DRAGOMAN_ENGINE_LIB_DIR: ${{ github.workspace }}/engine/build
+          DRAGOMAN_COMPAT_PAIRS: ${{ inputs.pairs || 'all' }}
+        run: |
+          cargo test -p dragoman-models --features compat-test --test compat -- --nocapture
