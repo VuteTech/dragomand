@@ -146,7 +146,7 @@ target_compile_options(marian PRIVATE ${ALL_WARNINGS})
 # ${CMAKE_CURRENT_SOURCE_DIR}/../.git is a directory or file.
 set(MARIAN_GIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../.git)
 if(NOT EXISTS ${MARIAN_GIT_DIR})
-  # localtransd vendored checkout: common/git_revision.h is pre-generated.
+  # dragomand vendored checkout: common/git_revision.h is pre-generated.
   add_custom_target(marian_version)
 else()
 if(NOT IS_DIRECTORY ${MARIAN_GIT_DIR}) # i.e., it's a submodule

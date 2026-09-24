@@ -1,4 +1,4 @@
-# Written by engine/scripts/update-vendor.sh on 2026-09-23.
+# Written by engine/scripts/update-vendor.sh on 2026-09-24.
 # Vendored from https://github.com/mozilla/translations.git
 mozilla/translations 1de4a085d3a7afb625c51a60aabb5ad298e4059f
 inference/3rd_party/emsdk 2346baa7bb44a4a0571cc75f1986ab9aaa35aa03 dropped
@@ -11,3 +11,4 @@ inference/marian-fork/src/3rd_party/ruy 2d950b3bfa7ebfbe7a97ecb44b1cc4da5ac1d6f0
 inference/marian-fork/src/3rd_party/sentencepiece ae41b7740d7006596bb9257e83340b2620db9d00 vendored
 inference/marian-fork/src/3rd_party/simd_utils d0793d86aea9036a5bc77b9ca7791dff024168ca vendored
 inference/marian-fork/src/3rd_party/simple-websocket-server 417a2a9e9dbd720b8d2dfa1dafe57cf1b37ca0d7 dropped
+inference/marian-fork/src/3rd_party/ruy/third_party/cpuinfo 5916273f79a21551890fd3d56fc5375a78d1598d vendored

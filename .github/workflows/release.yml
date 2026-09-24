@@ -1,4 +1,6 @@
 # Publishes distribution packages when a GitHub release is published.
+# This is the only workflow that talks to OBS; pushes and pull requests
+# run ci.yml alone.
 #
 # The release tag must be vX.Y.Z and match the workspace version in
 # Cargo.toml. The job builds the vendored source tarball (every crate
@@ -36,7 +38,14 @@ env:
   OBS_PACKAGE: dragomand
 
 jobs:
+  # The full CI on the tagged commit; nothing is published unless it passes.
+  ci:
+    uses: ./.github/workflows/ci.yml
+    with:
+      ref: ${{ github.event.release.tag_name || inputs.tag }}
+
   obs:
+    needs: ci
     runs-on: ubuntu-24.04
     timeout-minutes: 300
     steps:
@@ -74,7 +83,8 @@ jobs:
         env:
           VERSION: ${{ steps.tag.outputs.version }}
         run: |
-          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          export SOURCE_DATE_EPOCH
           packaging/obs/prepare.sh "$VERSION" "dist/dragomand-$VERSION.tar.gz" obs-package
 
       - name: Attach the tarball to the release
@@ -134,9 +144,25 @@ jobs:
 
       - name: Wait for the OBS builds
         run: |
-          # Give the scheduler a moment to notice the new sources.
-          sleep 60
-          osc results --watch "$OBS_PROJECT" "$OBS_PACKAGE" > /dev/null || true
+          # Poll instead of `osc results --watch`, which can keep waiting
+          # after every build has finished. Done means each repository and
+          # architecture has a final status and no pending rescheduling
+          # (CSV columns: repository, arch, package, repository state,
+          # dirty, status, details).
+          deadline=$((SECONDS + 4 * 3600))
+          while :; do
+            # Give the scheduler a moment to notice the new sources.
+            sleep 60
+            csv="$(osc results --csv "$OBS_PROJECT" "$OBS_PACKAGE")" || continue
+            pending="$(awk -F'","' '$5 != "False" ||
+                $6 !~ /^(succeeded|failed|unresolvable|broken|excluded|disabled|locked)$/' <<<"$csv")"
+            [ -z "$pending" ] && break
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "::error::OBS builds still pending after 4 hours:"
+              echo "$pending"
+              exit 1
+            fi
+          done
           osc results "$OBS_PROJECT" "$OBS_PACKAGE"
           if osc results --csv "$OBS_PROJECT" "$OBS_PACKAGE" |
               grep -E '(failed|unresolvable|broken)'; then

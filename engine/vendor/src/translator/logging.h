@@ -18,7 +18,7 @@ class Logger {
 
   Logger(const Config &config) {
     // We are manually creating loggers, because this is usually created in marian as a side-effect of
-    // config-parsing. localtransd: the spdlog registry is process-global and
+    // config-parsing. dragomand: the spdlog registry is process-global and
     // several services coexist in the daemon, so create the loggers exactly
     // once and share them between all service instances.
     static std::vector<MarianLogger> sharedLoggers = createLoggers();
@@ -53,7 +53,7 @@ class Logger {
   }
 
   ~Logger() {
-    // localtransd: the loggers are shared by every service in the process
+    // dragomand: the loggers are shared by every service in the process
     // (see the constructor); dropping them from the registry here would
     // break the other live services. They last for the whole process.
   }

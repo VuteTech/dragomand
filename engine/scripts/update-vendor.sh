@@ -41,8 +41,19 @@ git -C "$tmp/repo" fetch -q --depth 1 origin "$commit"
 git -C "$tmp/repo" sparse-checkout set inference
 git -C "$tmp/repo" checkout -q FETCH_HEAD
 
+# Submodules nested inside those, as <parent submodule> <path in parent>.
+# ruy (the ARM64 GEMM backend) builds its cpuinfo; its googletest is only
+# for ruy's own tests.
+nested=(
+    "inference/marian-fork/src/3rd_party/ruy third_party/cpuinfo"
+)
+
 echo "Fetching submodules ..."
 git -C "$tmp/repo" submodule update -q --init --depth 1 "${submodules[@]}"
+for n in "${nested[@]}"; do
+    read -r parent path <<<"$n"
+    git -C "$tmp/repo/$parent" submodule update -q --init --depth 1 "$path"
+done
 
 echo "Writing $vendor_dir ..."
 rm -rf "$vendor_dir"
@@ -70,6 +81,10 @@ rsync -a \
             done
             echo "$path $sha $vendored"
         done
+    for n in "${nested[@]}"; do
+        read -r parent path <<<"$n"
+        echo "$parent/$path $(git -C "$tmp/repo/$parent" rev-parse "HEAD:$path") vendored"
+    done
 } >"$vendor_dir/VERSION"
 
 # The inference/ tree has no license file of its own; mozilla/translations
@@ -89,7 +104,7 @@ done
 # marian's build generates common/git_revision.h from git metadata, which a
 # vendored tree lacks; pre-generate it (see marian-no-git-metadata.patch).
 printf '#define GIT_REVISION "%s (vendored from mozilla/translations)"\n' \
-    "$(git -C "$tmp/repo" rev-parse --short FETCH_HEAD)" \
+    "$(git -C "$tmp/repo" rev-parse --short=12 FETCH_HEAD)" \
     >"$vendor_dir/marian-fork/src/common/git_revision.h"
 
 # Collect the third-party license texts. Vendored files keep their own
@@ -108,7 +123,8 @@ copy_license marian-fork/LICENSE.md marian-fork.md # MIT
 copy_license 3rd_party/ssplit-cpp/LICENSE.md ssplit-cpp.md # Apache-2.0
 # The LGPL-2.1 nonbreaking_prefixes data ships inside ssplit-cpp and is read
 # at runtime; keep its notice alongside the code (no separate file upstream).
-for lic in "$vendor_dir"/marian-fork/src/3rd_party/*/LICENSE; do
+for lic in "$vendor_dir"/marian-fork/src/3rd_party/*/LICENSE \
+    "$vendor_dir"/marian-fork/src/3rd_party/ruy/third_party/cpuinfo/LICENSE; do
     name="$(basename "$(dirname "$lic")")"
     copy_license "${lic#"$vendor_dir/"}" "$name.txt"
 done
