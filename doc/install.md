@@ -12,17 +12,111 @@
 
 ## From a distribution package
 
-An Arch Linux `PKGBUILD` ships in `packaging/obs/`. Until the first
-public release it builds against a local tarball of the checkout:
+Every release is built on the
+[openSUSE Build Service](https://build.opensuse.org/package/show/home:blago:dragomand/dragomand)
+for the distributions below. Add the repository once; after that, new
+releases arrive with your normal system updates. Each repository is signed,
+and the commands import its key.
 
-```sh
-scripts/make-release-tarball.sh packaging/obs/
-cd packaging/obs
-makepkg -si
-```
+Packages are built for x86-64 on every distribution listed; Fedora 44 and
+openSUSE Leap 16.0 also get 64-bit ARM packages.
 
-Runtime dependencies on Arch: `cblas`, `lapack`, `pcre2`, `dbus`,
-`gcc-libs`. On Debian the BLAS implementation is chosen through the
+=== "openSUSE Tumbleweed"
+
+    ```sh
+    sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Tumbleweed/home:blago:dragomand.repo
+    sudo zypper refresh
+    sudo zypper install dragomand
+    ```
+
+    `zypper refresh` asks whether to trust the repository key; answer
+    `a` to trust it always.
+
+=== "openSUSE Slowroll"
+
+    ```sh
+    sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Slowroll/home:blago:dragomand.repo
+    sudo zypper refresh
+    sudo zypper install dragomand
+    ```
+
+    `zypper refresh` asks whether to trust the repository key; answer
+    `a` to trust it always.
+
+=== "openSUSE Leap 16.0"
+
+    ```sh
+    sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/16.0/home:blago:dragomand.repo
+    sudo zypper refresh
+    sudo zypper install dragomand
+    ```
+
+    `zypper refresh` asks whether to trust the repository key; answer
+    `a` to trust it always.
+
+=== "Fedora 44"
+
+    ```sh
+    sudo dnf config-manager addrepo --from-repofile=https://download.opensuse.org/repositories/home:/blago:/dragomand/Fedora_44/home:blago:dragomand.repo
+    sudo dnf install dragomand
+    ```
+
+    `dnf` shows the repository key's fingerprint on first use and asks
+    you to confirm it.
+
+=== "Debian"
+
+    For Debian 13 (trixie):
+
+    If `curl` is missing, install it first with `sudo apt install curl`.
+
+    ```sh
+    curl -fsSL https://download.opensuse.org/repositories/home:/blago:/dragomand/Debian_13/Release.key \
+      | sudo tee /etc/apt/keyrings/dragomand.asc > /dev/null
+    echo 'deb [signed-by=/etc/apt/keyrings/dragomand.asc] https://download.opensuse.org/repositories/home:/blago:/dragomand/Debian_13/ /' \
+      | sudo tee /etc/apt/sources.list.d/dragomand.list
+    sudo apt update
+    sudo apt install dragomand
+    ```
+
+    On Debian testing or unstable, replace `Debian_13` in both URLs with
+    `Debian_Testing` or `Debian_Unstable`.
+
+=== "Ubuntu 26.04"
+
+    If `curl` is missing, install it first with `sudo apt install curl`.
+
+    ```sh
+    curl -fsSL https://download.opensuse.org/repositories/home:/blago:/dragomand/xUbuntu_26.04/Release.key \
+      | sudo tee /etc/apt/keyrings/dragomand.asc > /dev/null
+    echo 'deb [signed-by=/etc/apt/keyrings/dragomand.asc] https://download.opensuse.org/repositories/home:/blago:/dragomand/xUbuntu_26.04/ /' \
+      | sudo tee /etc/apt/sources.list.d/dragomand.list
+    sudo apt update
+    sudo apt install dragomand
+    ```
+
+=== "Arch Linux"
+
+    Import and locally sign the repository key, add the repository to
+    `/etc/pacman.conf`, then install:
+
+    ```sh
+    key=$(curl -fsSL https://download.opensuse.org/repositories/home:/blago:/dragomand/Arch/x86_64/home_blago_dragomand_Arch.key)
+    fingerprint=$(gpg --quiet --with-colons --import-options show-only --import --fingerprint <<< "$key" \
+      | awk -F: '$1 == "fpr" { print $10; exit }')
+    sudo pacman-key --add - <<< "$key"
+    sudo pacman-key --lsign-key "$fingerprint"
+
+    printf '\n[home_blago_dragomand_Arch]\nServer = https://download.opensuse.org/repositories/home:/blago:/dragomand/Arch/$arch\n' \
+      | sudo tee -a /etc/pacman.conf
+    sudo pacman -Syu dragomand
+    ```
+
+    The `$arch` in the `Server` line is literal: pacman fills it in.
+
+To try the first translation, see the [Quick start](quickstart.md).
+
+On Debian and Ubuntu the BLAS implementation is chosen through the
 `libblas.so.3` alternatives system; on Fedora, FlexiBLAS is picked up
 directly. OpenBLAS is the recommended implementation everywhere.
 
@@ -85,6 +179,9 @@ Notes:
   configure step.
 - `cargo test --workspace` runs the test suite; the daemon tests need
   `dbus-daemon` installed and run on a private bus.
+- To build the Arch package from a checkout instead of using the
+  repository: `scripts/make-release-tarball.sh packaging/obs/`, then
+  `makepkg -si` in `packaging/obs/`.
 
 ## Models for offline machines
 

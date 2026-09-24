@@ -2,7 +2,7 @@
 # the doc/ directory, with the custom theme in mkdocs-theme/ (ported
 # from the site's earlier Hugo theme).
 #
-#   pip install mkdocs mkdocs-static-i18n
+#   pip install mkdocs mkdocs-static-i18n pymdown-extensions
 #   mkdocs serve      # live preview at http://127.0.0.1:8000
 #   mkdocs build      # static site in site/
 #
@@ -62,6 +62,14 @@ markdown_extensions:
   - admonition
   - def_list
   - tables
-  - fenced_code
+  # superfences instead of fenced_code: code blocks also work nested
+  # inside tabs. No Pygments, so blocks keep plain <pre><code> markup.
+  - pymdownx.highlight:
+      use_pygments: false
+  - pymdownx.superfences
+  # Distribution tabs on the install page; the alternate style switches
+  # with radio buttons and CSS alone (the theme has no JavaScript).
+  - pymdownx.tabbed:
+      alternate_style: true
   - toc:
       permalink: true

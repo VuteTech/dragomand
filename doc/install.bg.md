@@ -4,19 +4,109 @@ title: Инсталиране
 
 # Инсталиране
 
-Dragomand е млад проект: има пакет за Арч Линукс, а изходният код се
-компилира на всяка съвременна дистрибуция. До първото публично издание
-изходният код идва от копие на хранилището.
+## От пакет за дистрибуцията
 
-## Арч Линукс
+Всяко издание се изгражда в
+[openSUSE Build Service](https://build.opensuse.org/package/show/home:blago:dragomand/dragomand)
+за дистрибуциите по-долу. Добавете хранилището веднъж; след това новите
+издания пристигат с обичайните обновления на системата. Всяко хранилище
+е подписано и командите внасят ключа му.
 
-Изградете пакета с PKGBUILD файла от хранилището:
+Пакетите са за x86-64 на всяка изброена дистрибуция; за Fedora 44 и
+openSUSE Leap 16.0 има и пакети за 64-битов ARM.
 
-```sh
-scripts/make-release-tarball.sh packaging/obs/
-cd packaging/obs
-makepkg -si
-```
+=== "openSUSE Tumbleweed"
+
+    ```sh
+    sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Tumbleweed/home:blago:dragomand.repo
+    sudo zypper refresh
+    sudo zypper install dragomand
+    ```
+
+    `zypper refresh` пита дали да се довери на ключа на хранилището;
+    отговорете с `a`, за да му се доверява винаги.
+
+=== "openSUSE Slowroll"
+
+    ```sh
+    sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Slowroll/home:blago:dragomand.repo
+    sudo zypper refresh
+    sudo zypper install dragomand
+    ```
+
+    `zypper refresh` пита дали да се довери на ключа на хранилището;
+    отговорете с `a`, за да му се доверява винаги.
+
+=== "openSUSE Leap 16.0"
+
+    ```sh
+    sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/16.0/home:blago:dragomand.repo
+    sudo zypper refresh
+    sudo zypper install dragomand
+    ```
+
+    `zypper refresh` пита дали да се довери на ключа на хранилището;
+    отговорете с `a`, за да му се доверява винаги.
+
+=== "Fedora 44"
+
+    ```sh
+    sudo dnf config-manager addrepo --from-repofile=https://download.opensuse.org/repositories/home:/blago:/dragomand/Fedora_44/home:blago:dragomand.repo
+    sudo dnf install dragomand
+    ```
+
+    При първа употреба `dnf` показва отпечатъка на ключа на хранилището
+    и иска потвърждение.
+
+=== "Debian"
+
+    За Debian 13 (trixie):
+
+    Ако `curl` липсва, първо го инсталирайте със `sudo apt install curl`.
+
+    ```sh
+    curl -fsSL https://download.opensuse.org/repositories/home:/blago:/dragomand/Debian_13/Release.key \
+      | sudo tee /etc/apt/keyrings/dragomand.asc > /dev/null
+    echo 'deb [signed-by=/etc/apt/keyrings/dragomand.asc] https://download.opensuse.org/repositories/home:/blago:/dragomand/Debian_13/ /' \
+      | sudo tee /etc/apt/sources.list.d/dragomand.list
+    sudo apt update
+    sudo apt install dragomand
+    ```
+
+    За Debian testing или unstable заменете `Debian_13` и в двата адреса
+    с `Debian_Testing` или `Debian_Unstable`.
+
+=== "Ubuntu 26.04"
+
+    Ако `curl` липсва, първо го инсталирайте със `sudo apt install curl`.
+
+    ```sh
+    curl -fsSL https://download.opensuse.org/repositories/home:/blago:/dragomand/xUbuntu_26.04/Release.key \
+      | sudo tee /etc/apt/keyrings/dragomand.asc > /dev/null
+    echo 'deb [signed-by=/etc/apt/keyrings/dragomand.asc] https://download.opensuse.org/repositories/home:/blago:/dragomand/xUbuntu_26.04/ /' \
+      | sudo tee /etc/apt/sources.list.d/dragomand.list
+    sudo apt update
+    sudo apt install dragomand
+    ```
+
+=== "Arch Linux"
+
+    Внесете и подпишете локално ключа на хранилището, добавете
+    хранилището в `/etc/pacman.conf` и инсталирайте:
+
+    ```sh
+    key=$(curl -fsSL https://download.opensuse.org/repositories/home:/blago:/dragomand/Arch/x86_64/home_blago_dragomand_Arch.key)
+    fingerprint=$(gpg --quiet --with-colons --import-options show-only --import --fingerprint <<< "$key" \
+      | awk -F: '$1 == "fpr" { print $10; exit }')
+    sudo pacman-key --add - <<< "$key"
+    sudo pacman-key --lsign-key "$fingerprint"
+
+    printf '\n[home_blago_dragomand_Arch]\nServer = https://download.opensuse.org/repositories/home:/blago:/dragomand/Arch/$arch\n' \
+      | sudo tee -a /etc/pacman.conf
+    sudo pacman -Syu dragomand
+    ```
+
+    `$arch` в реда `Server` се пише буквално: pacman го попълва сам.
 
 Пакетът инсталира активирания през D-Bus демон, конзолния клиент
 `dragomanctl` със завършване за обвивките и страница на ръководството,
@@ -61,6 +151,10 @@ DRAGOMAN_ENGINE_LIB_DIR=$PWD/engine/build cargo build --release --workspace
 на CBLAS (препоръчва се OpenBLAS; Intel MKL нарочно не се използва) и
 Rust 1.85 или по-нов. Бележките за пакетиращите са в `docs/packaging.md`
 в хранилището.
+
+За да изградите пакета за Arch от копие на хранилището вместо от
+хранилището за пакети: `scripts/make-release-tarball.sh packaging/obs/`,
+после `makepkg -si` в `packaging/obs/`.
 
 ## Поведение офлайн
 

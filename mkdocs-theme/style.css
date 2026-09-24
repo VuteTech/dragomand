@@ -575,3 +575,102 @@ main.container.with-sidebar {
 
   .docs-sidebar .page-toc { display: none; }
 }
+
+
+/* ---- Tabs (pymdownx.tabbed, alternate style) ----
+   One radio input per tab, then the labels, then the panels. The checked
+   input selects its label and panel by position, so switching needs no
+   JavaScript. The inputs stay focusable (visually hidden, not display:
+   none), which keeps arrow-key switching; the selectors below cover up
+   to 10 tabs per set. */
+
+.tabbed-set {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 1.5em 0;
+}
+
+.tabbed-set > input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tabbed-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+  border-bottom: 1px solid #e4e0dc;
+}
+
+.tabbed-labels > label {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #5a5a5a;
+  white-space: nowrap;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tabbed-labels > label:hover { color: #C95736; }
+
+.tabbed-block { display: none; }
+
+/* Flex items default to min-width: auto, which would let a long command
+   line widen the whole page instead of scrolling inside its block. */
+.tabbed-labels,
+.tabbed-content {
+  min-width: 0;
+}
+
+.tabbed-content { padding-top: 0.6em; }
+
+.tabbed-block > pre:first-child { margin-top: 0; }
+.tabbed-block > :last-child { margin-bottom: 0; }
+
+.tabbed-set > input:nth-child(1):checked ~ .tabbed-labels > label:nth-child(1),
+.tabbed-set > input:nth-child(2):checked ~ .tabbed-labels > label:nth-child(2),
+.tabbed-set > input:nth-child(3):checked ~ .tabbed-labels > label:nth-child(3),
+.tabbed-set > input:nth-child(4):checked ~ .tabbed-labels > label:nth-child(4),
+.tabbed-set > input:nth-child(5):checked ~ .tabbed-labels > label:nth-child(5),
+.tabbed-set > input:nth-child(6):checked ~ .tabbed-labels > label:nth-child(6),
+.tabbed-set > input:nth-child(7):checked ~ .tabbed-labels > label:nth-child(7),
+.tabbed-set > input:nth-child(8):checked ~ .tabbed-labels > label:nth-child(8),
+.tabbed-set > input:nth-child(9):checked ~ .tabbed-labels > label:nth-child(9),
+.tabbed-set > input:nth-child(10):checked ~ .tabbed-labels > label:nth-child(10) {
+  color: #C95736;
+  border-bottom-color: #C95736;
+  font-weight: 700;
+}
+
+.tabbed-set > input:nth-child(1):focus-visible ~ .tabbed-labels > label:nth-child(1),
+.tabbed-set > input:nth-child(2):focus-visible ~ .tabbed-labels > label:nth-child(2),
+.tabbed-set > input:nth-child(3):focus-visible ~ .tabbed-labels > label:nth-child(3),
+.tabbed-set > input:nth-child(4):focus-visible ~ .tabbed-labels > label:nth-child(4),
+.tabbed-set > input:nth-child(5):focus-visible ~ .tabbed-labels > label:nth-child(5),
+.tabbed-set > input:nth-child(6):focus-visible ~ .tabbed-labels > label:nth-child(6),
+.tabbed-set > input:nth-child(7):focus-visible ~ .tabbed-labels > label:nth-child(7),
+.tabbed-set > input:nth-child(8):focus-visible ~ .tabbed-labels > label:nth-child(8),
+.tabbed-set > input:nth-child(9):focus-visible ~ .tabbed-labels > label:nth-child(9),
+.tabbed-set > input:nth-child(10):focus-visible ~ .tabbed-labels > label:nth-child(10) {
+  outline: 2px solid #C95736;
+  outline-offset: 2px;
+}
+
+.tabbed-set > input:nth-child(1):checked ~ .tabbed-content > .tabbed-block:nth-child(1),
+.tabbed-set > input:nth-child(2):checked ~ .tabbed-content > .tabbed-block:nth-child(2),
+.tabbed-set > input:nth-child(3):checked ~ .tabbed-content > .tabbed-block:nth-child(3),
+.tabbed-set > input:nth-child(4):checked ~ .tabbed-content > .tabbed-block:nth-child(4),
+.tabbed-set > input:nth-child(5):checked ~ .tabbed-content > .tabbed-block:nth-child(5),
+.tabbed-set > input:nth-child(6):checked ~ .tabbed-content > .tabbed-block:nth-child(6),
+.tabbed-set > input:nth-child(7):checked ~ .tabbed-content > .tabbed-block:nth-child(7),
+.tabbed-set > input:nth-child(8):checked ~ .tabbed-content > .tabbed-block:nth-child(8),
+.tabbed-set > input:nth-child(9):checked ~ .tabbed-content > .tabbed-block:nth-child(9),
+.tabbed-set > input:nth-child(10):checked ~ .tabbed-content > .tabbed-block:nth-child(10) {
+  display: block;
+}
