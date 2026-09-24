@@ -40,10 +40,10 @@ struct Runner {
 
 fn simple_match(id: &str, text: String, kind: i32, relevance: f64, subtext: &str) -> KMatch {
     let mut properties = HashMap::new();
-    if !subtext.is_empty()
-        && let Ok(value) = OwnedValue::try_from(Value::from(subtext))
-    {
-        properties.insert("subtext".to_owned(), value);
+    if !subtext.is_empty() {
+        if let Ok(value) = OwnedValue::try_from(Value::from(subtext)) {
+            properties.insert("subtext".to_owned(), value);
+        }
     }
     (
         id.to_owned(),

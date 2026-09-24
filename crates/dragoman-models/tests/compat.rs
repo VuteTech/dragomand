@@ -89,10 +89,10 @@ async fn compatibility_sweep() {
             }
         }
         // Free the downloaded files as we go on a full sweep.
-        if pairs_env == "all"
-            && let Some(installed) = stores.resolve(&set.source, &set.target)
-        {
-            let _ = stores.remove(&installed);
+        if pairs_env == "all" {
+            if let Some(installed) = stores.resolve(&set.source, &set.target) {
+                let _ = stores.remove(&installed);
+            }
         }
     }
 

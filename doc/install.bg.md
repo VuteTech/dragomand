@@ -13,8 +13,8 @@ Dragomand е млад проект: има пакет за Арч Линукс, 
 Изградете пакета с PKGBUILD файла от хранилището:
 
 ```sh
-scripts/make-release-tarball.sh packaging/arch/
-cd packaging/arch
+scripts/make-release-tarball.sh packaging/obs/
+cd packaging/obs
 makepkg -si
 ```
 

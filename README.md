@@ -58,7 +58,7 @@ DRAGOMAN_ENGINE_LIB_DIR=$PWD/engine/build cargo build --release --workspace
 
 `cargo build --no-default-features` skips the C++ engine entirely (fake
 backend, used by most tests). See `docs/packaging.md` for distribution
-builds and `packaging/arch/PKGBUILD` for a complete example.
+builds and `packaging/obs/PKGBUILD` for a complete example.
 
 ## License
 

@@ -83,7 +83,7 @@ cp "$engine_dir/patches/FindCBLAS.cmake" "$vendor_dir/marian-fork/cmake/FindCBLA
 # Apply source patches (each header explains why it exists). patch(1) fails
 # loudly when a pin bump invalidates one; refresh it then.
 for p in "$engine_dir"/patches/*.patch; do
-    patch --directory="$vendor_dir" --strip=1 --forward --silent <"$p"
+    patch --directory="$vendor_dir" --strip=1 --forward --silent --no-backup-if-mismatch <"$p"
 done
 
 # marian's build generates common/git_revision.h from git metadata, which a

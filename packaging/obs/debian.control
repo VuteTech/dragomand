@@ -1,0 +1,36 @@
+Source: dragomand
+Section: utils
+Priority: optional
+Maintainer: Blagovest Petrov <blagovest@petrovs.info>
+Build-Depends: debhelper-compat (= 13),
+ cargo,
+ rustc (>= 1.85),
+ cmake (>= 3.25),
+ ninja-build,
+ g++,
+ pkgconf,
+ libpcre2-dev,
+ libblas-dev,
+ liblapack-dev,
+ dbus-daemon
+Standards-Version: 4.7.0
+Homepage: https://dragomand.l10n-bg.dev
+Vcs-Browser: https://github.com/VuteTech/dragomand
+Vcs-Git: https://github.com/VuteTech/dragomand.git
+Rules-Requires-Root: no
+
+Package: dragomand
+Architecture: amd64 arm64
+Depends: ${shlibs:Depends}, ${misc:Depends},
+ default-dbus-session-bus | dbus-session-bus
+Recommends: libopenblas0
+Suggests: wl-clipboard | xclip, libnotify-bin
+Description: offline machine translation daemon for the desktop
+ Dragomand is a per-user daemon that gives desktop applications fully
+ offline machine translation over D-Bus. It runs Mozilla's
+ Bergamot/Marian translation models (the ones behind Firefox
+ Translations) locally, downloads and verifies models on demand, keeps
+ recently used pairs warm within a memory budget, and exits when idle.
+ .
+ The package ships the D-Bus activated daemon, the dragomanctl command
+ line client, and the KRunner and GNOME Shell search services.

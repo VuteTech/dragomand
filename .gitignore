@@ -14,10 +14,10 @@ CMakeUserPresets.json
 engine/vendor/marian-fork/src/common/project_version.h
 
 # makepkg working files and outputs
-packaging/arch/src/
-packaging/arch/pkg/
-packaging/arch/*.tar.gz
-packaging/arch/*.pkg.tar*
+packaging/obs/src/
+packaging/obs/pkg/
+packaging/obs/*.tar.gz
+packaging/obs/*.pkg.tar*
 
 # Python bytecode
 __pycache__/

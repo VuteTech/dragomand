@@ -102,9 +102,7 @@ impl Http for FakeHttp {
                 status: 404,
             });
         };
-        if let (Some(sent), Some(have)) = (if_none_match, etag.as_deref())
-            && sent == have
-        {
+        if if_none_match.is_some() && if_none_match == etag.as_deref() {
             self.not_modified_served.fetch_add(1, Ordering::SeqCst);
             return Ok(FetchResult::NotModified);
         }

@@ -67,6 +67,80 @@ target_include_directories(dragoman_engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/ad
 target_link_libraries(dragoman_engine PUBLIC bergamot-translator-source ${DG_LAPACK_LINK_LIBRARIES})
 set_target_properties(dragoman_engine PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 
+# --- Link list for the Rust side --------------------------------------------
+# The daemon links this static library from Rust
+# (crates/dragoman-engine/build.rs), so everything the engine depends on must
+# reach that link too, and it differs per distribution (which BLAS, a static
+# or shared PCRE2) and per architecture (intgemm on x86-64, ruy on ARM64).
+# Walk the dependency graph CMake already knows and write it out, one item
+# per line in link order: archive and library paths, or -l flags.
+function(_dg_link_walk item depth)
+  if(depth GREATER 20)
+    message(FATAL_ERROR "link graph too deep at ${item}")
+  endif()
+  string(REGEX REPLACE "^\\$<LINK_ONLY:(.*)>$" "\\1" item "${item}")
+  if(TARGET ${item})
+    get_target_property(aliased ${item} ALIASED_TARGET)
+    if(aliased)
+      set(item ${aliased})
+    endif()
+  endif()
+  # Every library goes after everything that uses it: drop an earlier
+  # occurrence and append.
+  get_property(items GLOBAL PROPERTY DG_LINK_ITEMS)
+  list(REMOVE_ITEM items "${item}")
+  list(APPEND items "${item}")
+  set_property(GLOBAL PROPERTY DG_LINK_ITEMS "${items}")
+  if(TARGET ${item})
+    get_target_property(type ${item} TYPE)
+    get_target_property(imported ${item} IMPORTED)
+    set(deps "")
+    if(NOT imported AND NOT type STREQUAL "INTERFACE_LIBRARY")
+      get_target_property(private ${item} LINK_LIBRARIES)
+      if(private)
+        list(APPEND deps ${private})
+      endif()
+    endif()
+    get_target_property(public ${item} INTERFACE_LINK_LIBRARIES)
+    if(public)
+      list(APPEND deps ${public})
+    endif()
+    list(REMOVE_DUPLICATES deps)
+    foreach(dep IN LISTS deps)
+      math(EXPR next "${depth} + 1")
+      _dg_link_walk("${dep}" ${next})
+    endforeach()
+  endif()
+endfunction()
+
+set_property(GLOBAL PROPERTY DG_LINK_ITEMS "")
+_dg_link_walk(dragoman_engine 0)
+get_property(_dg_items GLOBAL PROPERTY DG_LINK_ITEMS)
+set(_dg_lines "")
+foreach(item IN LISTS _dg_items)
+  if(TARGET ${item})
+    get_target_property(type ${item} TYPE)
+    get_target_property(imported ${item} IMPORTED)
+    if(type STREQUAL "STATIC_LIBRARY" OR type STREQUAL "SHARED_LIBRARY"
+       OR (imported AND type STREQUAL "UNKNOWN_LIBRARY"))
+      string(APPEND _dg_lines "$<TARGET_FILE:${item}>\n")
+    endif()
+    # Interface and location-less imported targets (Threads::Threads)
+    # contribute only through the dependencies walked above.
+  elseif(item MATCHES "::")
+    # A namespaced imported target out of this directory's scope
+    # (Threads::Threads); it only carries flags like -pthread.
+  elseif(IS_ABSOLUTE "${item}")
+    string(APPEND _dg_lines "${item}\n")
+  elseif(item MATCHES "^-l")
+    string(APPEND _dg_lines "${item}\n")
+  elseif(NOT item MATCHES "^-")
+    string(APPEND _dg_lines "-l${item}\n")
+  endif()
+  # Other flags (-pthread) are covered by the Rust toolchain's own link.
+endforeach()
+file(GENERATE OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/engine-link.txt CONTENT "${_dg_lines}")
+
 # --- Smoke test -------------------------------------------------------------
 add_executable(dg-smoke smoke/smoke.c)
 target_link_libraries(dg-smoke PRIVATE dragoman_engine)

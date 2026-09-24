@@ -1,15 +1,17 @@
 # Maintainer: Blagovest Petrov <blagovest@petrovs.info>
 #
-# Until the repository has a public release, build against a local tarball:
-#   scripts/make-release-tarball.sh packaging/arch/
-#   cd packaging/arch && makepkg
-# At release, switch source= to the hosted URL and refresh sha256sums.
+# Builds from a local release tarball:
+#   scripts/make-release-tarball.sh packaging/obs/
+#   cd packaging/obs && makepkg
+# The release workflow also publishes this file to OBS (with pkgver
+# stamped from the tag) next to the vendored tarball, whose
+# .cargo/config.toml keeps cargo offline.
 
 pkgname=dragomand
 pkgver=0.1.0
 pkgrel=1
 pkgdesc="Offline machine translation daemon for the desktop (D-Bus, Mozilla Bergamot models)"
-arch=(x86_64)
+arch=(x86_64 aarch64)
 url="https://dragomand.l10n-bg.dev"
 license=(GPL-3.0-or-later)
 # makepkg's -flto=auto produces GCC-IR static libraries (bundled zstd, the
@@ -26,9 +28,12 @@ build() {
   cd "$pkgname-$pkgver"
 
   # Engine first: library-only native build, generic CBLAS, no MKL.
+  # Distribution baselines; the x86-64 int8 path dispatches by CPUID.
+  local build_arch=x86-64-v2
+  [[ $CARCH == aarch64 ]] && build_arch=armv8-a
   cmake -S engine -B engine/build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
-    -DBUILD_ARCH=x86-64-v2
+    -DBUILD_ARCH=$build_arch
   cmake --build engine/build -- $NINJAFLAGS
 
   export DRAGOMAN_ENGINE_LIB_DIR="$PWD/engine/build"
@@ -99,6 +104,4 @@ package() {
   # covered by the license= array).
   install -d "$pkgdir/usr/share/licenses/$pkgname"
   install -m644 engine/vendor/LICENSES/* "$pkgdir/usr/share/licenses/$pkgname/"
-  install -m644 engine/vendor/LICENSE \
-    "$pkgdir/usr/share/licenses/$pkgname/bergamot-tree.MPL-2.0.txt"
 }

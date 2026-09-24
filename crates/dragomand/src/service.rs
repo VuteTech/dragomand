@@ -169,10 +169,10 @@ impl Translator {
                     "available_version".into(),
                     value(set.version.as_str().to_owned()),
                 );
-                if !row.contains_key("architecture")
-                    && let Some(architecture) = &set.architecture
-                {
-                    row.insert("architecture".into(), value(architecture.clone()));
+                if !row.contains_key("architecture") {
+                    if let Some(architecture) = &set.architecture {
+                        row.insert("architecture".into(), value(architecture.clone()));
+                    }
                 }
             }
         }

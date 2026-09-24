@@ -1,0 +1,74 @@
+#!/usr/bin/make -f
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+# GCC LTO puts IR into the static libraries (the engine, the zstd that the
+# cc crate compiles with CFLAGS) and rustc's linker cannot read it. Ubuntu
+# enables LTO through dpkg-buildflags by default, so turn it off here.
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all optimize=-lto
+
+export DRAGOMAN_ENGINE_LIB_DIR = $(CURDIR)/engine/build
+export CARGO_HOME = $(CURDIR)/debian/cargo-home
+
+DEB_HOST_ARCH_CPU ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_CPU)
+# The int8 hot path dispatches by CPUID at run time, so the x86-64-v2
+# baseline keeps AVX2 and AVX-512 speed; armv8-a is the ARM64 baseline.
+ifeq ($(DEB_HOST_ARCH_CPU),amd64)
+  BUILD_ARCH = x86-64-v2
+else
+  BUILD_ARCH = armv8-a
+endif
+
+DESTDIR = $(CURDIR)/debian/dragomand
+CARGO_FLAGS = --release --locked --offline --workspace
+
+%:
+	dh $@
+
+override_dh_auto_configure:
+	cmake -S engine -B engine/build -G Ninja \
+	    -DCMAKE_BUILD_TYPE=Release -DBUILD_ARCH=$(BUILD_ARCH)
+
+override_dh_auto_build:
+	cmake --build engine/build
+	cargo build $(CARGO_FLAGS)
+	./target/release/dragomanctl manpage > debian/dragomanctl.1
+	./target/release/dragomanctl completions bash > debian/dragomanctl.bash
+	./target/release/dragomanctl completions zsh > debian/_dragomanctl
+	./target/release/dragomanctl completions fish > debian/dragomanctl.fish
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	cargo test $(CARGO_FLAGS)
+endif
+
+override_dh_auto_install:
+	install -Dm755 target/release/dragomand $(DESTDIR)/usr/lib/dragomand/dragomand
+	install -Dm755 target/release/dragoman-krunner $(DESTDIR)/usr/lib/dragomand/dragoman-krunner
+	install -Dm755 target/release/dragoman-search-provider $(DESTDIR)/usr/lib/dragomand/dragoman-search-provider
+	install -Dm755 target/release/dragomanctl $(DESTDIR)/usr/bin/dragomanctl
+	install -Dm644 data/systemd/dragomand.service $(DESTDIR)/usr/lib/systemd/user/dragomand.service
+	install -Dm644 data/systemd/dragomand-update.service $(DESTDIR)/usr/lib/systemd/user/dragomand-update.service
+	install -Dm644 data/systemd/dragomand-update.timer $(DESTDIR)/usr/lib/systemd/user/dragomand-update.timer
+	install -Dm644 data/dbus/dev.l10n_bg.dragomand.Translator1.service $(DESTDIR)/usr/share/dbus-1/services/dev.l10n_bg.dragomand.Translator1.service
+	install -Dm644 data/dbus/dev.l10n_bg.dragomand.KRunner1.service $(DESTDIR)/usr/share/dbus-1/services/dev.l10n_bg.dragomand.KRunner1.service
+	install -Dm644 data/dbus/dev.l10n_bg.dragomand.SearchProvider.service $(DESTDIR)/usr/share/dbus-1/services/dev.l10n_bg.dragomand.SearchProvider.service
+	install -Dm644 data/dbus/dev.l10n_bg.dragomand.Translator1.xml $(DESTDIR)/usr/share/dbus-1/interfaces/dev.l10n_bg.dragomand.Translator1.xml
+	install -Dm644 data/krunner/dragoman-runner.desktop $(DESTDIR)/usr/share/krunner/dbusplugins/dragoman-runner.desktop
+	install -Dm644 data/gnome/dev.l10n_bg.dragomand.search-provider.ini $(DESTDIR)/usr/share/gnome-shell/search-providers/dev.l10n_bg.dragomand.search-provider.ini
+	install -Dm644 data/gnome/dev.l10n_bg.dragomand.desktop $(DESTDIR)/usr/share/applications/dev.l10n_bg.dragomand.desktop
+	install -Dm644 artwork/dragomand-icon.svg $(DESTDIR)/usr/share/icons/hicolor/scalable/apps/dev.l10n_bg.dragomand.svg
+	install -Dm644 debian/dragomanctl.1 $(DESTDIR)/usr/share/man/man1/dragomanctl.1
+	install -Dm644 debian/dragomanctl.bash $(DESTDIR)/usr/share/bash-completion/completions/dragomanctl
+	install -Dm644 debian/_dragomanctl $(DESTDIR)/usr/share/zsh/vendor-completions/_dragomanctl
+	install -Dm644 debian/dragomanctl.fish $(DESTDIR)/usr/share/fish/vendor_completions.d/dragomanctl.fish
+	install -d $(DESTDIR)/usr/share/doc/dragomand/integrations $(DESTDIR)/usr/share/doc/dragomand/licenses
+	install -m644 README.md data/config.toml.example $(DESTDIR)/usr/share/doc/dragomand/
+	install -m644 integrations/README.md integrations/*.sh $(DESTDIR)/usr/share/doc/dragomand/integrations/
+	install -m644 engine/vendor/LICENSES/* $(DESTDIR)/usr/share/doc/dragomand/licenses/
+
+# dwz cannot process the DWARF that rustc emits; there is little to
+# compress anyway.
+override_dh_dwz:
+
+override_dh_auto_clean:
+	rm -rf engine/build target debian/cargo-home

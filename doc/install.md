@@ -12,12 +12,12 @@
 
 ## From a distribution package
 
-An Arch Linux `PKGBUILD` ships in `packaging/arch/`. Until the first
+An Arch Linux `PKGBUILD` ships in `packaging/obs/`. Until the first
 public release it builds against a local tarball of the checkout:
 
 ```sh
-scripts/make-release-tarball.sh packaging/arch/
-cd packaging/arch
+scripts/make-release-tarball.sh packaging/obs/
+cd packaging/obs
 makepkg -si
 ```
 
@@ -96,7 +96,7 @@ model package that installs into the read-only system store:
 dragomanctl store install --root "$pkgdir/usr/share/dragomand/models" bg-en en-bg
 ```
 
-`packaging/arch/dragomand-model-bg-en/PKGBUILD` is a complete example. See
+`packaging/examples/dragomand-model-bg-en/PKGBUILD` is a complete example. See
 [Managing models](models.md) for how the stores fit together.
 
 ## Editor plugin

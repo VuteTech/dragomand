@@ -264,10 +264,10 @@ pub async fn watch_disconnects(
     let mut stream = dbus.receive_name_owner_changed().await?;
     while let Some(signal) = stream.next().await {
         let Ok(args) = signal.args() else { continue };
-        if args.new_owner.is_none()
-            && let zbus::names::BusName::Unique(old) = &args.name
-        {
-            manager.cancel_client(&OwnedUniqueName::from(old.clone()));
+        if args.new_owner.is_none() {
+            if let zbus::names::BusName::Unique(old) = &args.name {
+                manager.cancel_client(&OwnedUniqueName::from(old.clone()));
+            }
         }
     }
     Ok(())

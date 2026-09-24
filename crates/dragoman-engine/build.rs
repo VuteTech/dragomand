@@ -17,28 +17,10 @@ mod bergamot {
     use std::env;
     use std::path::{Path, PathBuf};
 
-    /// Static libraries produced by the engine build, as
-    /// (subdirectory inside the build tree, library name),
-    /// in link order: our adapter first, foundations last.
-    const STATIC_LIBS: &[(&str, &str)] = &[
-        ("", "dragoman_engine"),
-        ("vendor/src/translator", "bergamot-translator-source"),
-        ("", "marian"),
-        ("", "ssplit"),
-        ("vendor/marian-fork/src/3rd_party/intgemm", "intgemm"),
-        (
-            "vendor/marian-fork/src/3rd_party/sentencepiece/src",
-            "sentencepiece_train",
-        ),
-        (
-            "vendor/marian-fork/src/3rd_party/sentencepiece/src",
-            "sentencepiece",
-        ),
-    ];
-
-    /// System libraries the engine expects at runtime. BLAS names follow the
-    /// generic CBLAS interface (docs/packaging.md "BLAS"); pcre2 comes from ssplit.
-    const DYLIBS: &[&str] = &["cblas", "blas", "lapack", "pcre2-8", "stdc++"];
+    /// Written by engine/CMakeLists.txt: everything the static engine
+    /// depends on, in link order. It differs per distribution (which BLAS,
+    /// static or shared PCRE2) and per architecture (intgemm or ruy).
+    const LINK_LIST: &str = "engine-link.txt";
 
     pub fn link() {
         println!("cargo:rerun-if-env-changed=DRAGOMAN_ENGINE_LIB_DIR");
@@ -48,23 +30,51 @@ mod bergamot {
             None => build_with_cmake(),
         };
 
-        for (subdir, lib) in STATIC_LIBS {
-            let dir = build_dir.join(subdir);
-            let archive = dir.join(format!("lib{lib}.a"));
+        let list_path = build_dir.join(LINK_LIST);
+        let list = std::fs::read_to_string(&list_path).unwrap_or_else(|e| {
+            panic!(
+                "{}: {e}; is the engine built and configured by this tree's \
+                 engine/CMakeLists.txt? (cmake -S engine -B engine/build && \
+                 cmake --build engine/build)",
+                list_path.display()
+            )
+        });
+        println!("cargo:rerun-if-changed={}", list_path.display());
+
+        for item in list.lines().map(str::trim).filter(|l| !l.is_empty()) {
+            if let Some(name) = item.strip_prefix("-l") {
+                println!("cargo:rustc-link-lib=dylib={name}");
+                continue;
+            }
+            let path = Path::new(item);
+            let (dir, kind, name) = split_library(path)
+                .unwrap_or_else(|| panic!("{}: cannot link {item:?}", list_path.display()));
             assert!(
-                archive.exists(),
-                "lib{lib}.a not found in {}; is the engine built? \
-                 (cmake -S engine -B engine/build && cmake --build engine/build)",
-                dir.display()
+                path.exists(),
+                "{} not found; is the engine built? (cmake --build engine/build)",
+                path.display()
             );
-            // Relink when a prebuilt archive changes underneath us.
-            println!("cargo:rerun-if-changed={}", archive.display());
+            if kind == "static" {
+                // Relink when a prebuilt archive changes underneath us.
+                println!("cargo:rerun-if-changed={}", path.display());
+            }
             println!("cargo:rustc-link-search=native={}", dir.display());
-            println!("cargo:rustc-link-lib=static={lib}");
+            println!("cargo:rustc-link-lib={kind}={name}");
         }
-        for lib in DYLIBS {
-            println!("cargo:rustc-link-lib=dylib={lib}");
+        // The engine is C++; the C++ linker driver would add this itself.
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+    }
+
+    /// `/usr/lib/libfoo.so.3` becomes (`/usr/lib`, "dylib", "foo"),
+    /// `build/libbar.a` becomes (`build`, "static", "bar").
+    fn split_library(path: &Path) -> Option<(&Path, &'static str, &str)> {
+        let dir = path.parent()?;
+        let file = path.file_name()?.to_str()?.strip_prefix("lib")?;
+        if let Some(name) = file.strip_suffix(".a") {
+            return Some((dir, "static", name));
         }
+        let (name, _) = file.split_once(".so")?;
+        Some((dir, "dylib", name))
     }
 
     fn build_with_cmake() -> PathBuf {
