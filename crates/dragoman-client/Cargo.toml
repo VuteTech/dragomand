@@ -1,0 +1,14 @@
+[package]
+name = "dragoman-client"
+description = "D-Bus client proxies and shared types for the Dragomand translation service"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+futures-util = { version = "0.3", default-features = false }
+zbus.workspace = true
+
+[lints]
+workspace = true

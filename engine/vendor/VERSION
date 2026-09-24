@@ -1,0 +1,13 @@
+# Written by engine/scripts/update-vendor.sh on 2026-09-23.
+# Vendored from https://github.com/mozilla/translations.git
+mozilla/translations 1de4a085d3a7afb625c51a60aabb5ad298e4059f
+inference/3rd_party/emsdk 2346baa7bb44a4a0571cc75f1986ab9aaa35aa03 dropped
+inference/3rd_party/ssplit-cpp a311f9865ade34db1e8e080e6cc146f55dafb067 vendored
+inference/marian-fork/src/3rd_party/fbgemm 0e33146d3e7f070c7de9494efef49147a9d20558 dropped
+inference/marian-fork/src/3rd_party/intgemm f7401513da71758dacce52fed1c7855549abee59 vendored
+inference/marian-fork/src/3rd_party/nccl 7d3486128ebc865b9f2cad63a5cfd3a8f6abcb5a dropped
+inference/marian-fork/src/3rd_party/onnxjs 924924b08e9596b41aeebada4a172f026be95f5a vendored
+inference/marian-fork/src/3rd_party/ruy 2d950b3bfa7ebfbe7a97ecb44b1cc4da5ac1d6f0 vendored
+inference/marian-fork/src/3rd_party/sentencepiece ae41b7740d7006596bb9257e83340b2620db9d00 vendored
+inference/marian-fork/src/3rd_party/simd_utils d0793d86aea9036a5bc77b9ca7791dff024168ca vendored
+inference/marian-fork/src/3rd_party/simple-websocket-server 417a2a9e9dbd720b8d2dfa1dafe57cf1b37ca0d7 dropped

@@ -1,0 +1,27 @@
+[package]
+name = "dragomanctl"
+description = "Command-line client for the Dragomand translation service"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+clap = { version = "4", features = ["derive", "wrap_help"] }
+clap_complete = "4"
+clap_mangen = "0.2"
+dragoman-client = { path = "../dragoman-client" }
+dragoman-models = { path = "../dragoman-models" }
+serde_json = "1"
+tokio = { workspace = true, features = ["rt", "macros"] }
+zbus.workspace = true
+
+[dev-dependencies]
+dragoman-engine = { path = "../dragoman-engine", default-features = false }
+dragomand = { path = "../dragomand", default-features = false }
+sha2 = "0.10"
+tempfile = "3"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
+
+[lints]
+workspace = true

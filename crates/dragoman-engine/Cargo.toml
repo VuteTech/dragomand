@@ -1,0 +1,27 @@
+[package]
+name = "dragoman-engine"
+description = "Translation engine bindings and worker threads for dragomand"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+links = "dragoman_engine"
+
+[features]
+default = ["bergamot"]
+# The real C++ Bergamot engine. Without it only the fake backend builds,
+# which is enough for the daemon's own tests.
+bergamot = ["dep:cmake"]
+
+[dependencies]
+thiserror.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["sync", "rt", "macros"] }
+
+[build-dependencies]
+cmake = { version = "0.1", optional = true }
+
+[lints]
+workspace = true

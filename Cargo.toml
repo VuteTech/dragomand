@@ -1,0 +1,29 @@
+[workspace]
+resolver = "3"
+members = [
+    "crates/dragoman-engine",
+    "crates/dragoman-models",
+    "crates/dragoman-client",
+    "crates/dragoman-krunner",
+    "crates/dragoman-search-provider",
+    "crates/dragomand",
+    "crates/dragomanctl",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "GPL-3.0-or-later"
+repository = "https://github.com/VuteTech/dragomand"
+rust-version = "1.85"
+
+[workspace.dependencies]
+thiserror = "2"
+tokio = { version = "1", default-features = false }
+zbus = { version = "5", default-features = false, features = ["tokio"] }
+
+[workspace.lints.clippy]
+undocumented_unsafe_blocks = "warn"
+
+[profile.release]
+lto = "thin"

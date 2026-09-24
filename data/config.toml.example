@@ -1,0 +1,22 @@
+# dragomand configuration: copy to ~/.config/dragomand/config.toml.
+# Every key is optional; these are the defaults (see also
+# docs/benchmarks.md for where the memory numbers come from).
+
+# Rough budget for loaded models, in MiB. One active base-memory pair
+# costs ~260 MiB; 512 fits two, 256 fits one.
+memory_budget_mb = 512
+
+# How many recently used routes stay warm when idle, and for how long.
+keep_warm = 2
+keep_warm_seconds = 600
+
+# The daemon exits this long after the last activity once nothing is
+# loaded any more. The next D-Bus call starts it again.
+idle_exit_seconds = 60
+
+# Master network switch. false disables model downloads and update checks
+# entirely; translation of installed models keeps working.
+network = true
+
+# Opt into pre-release (nightly-gated) models.
+allow_prerelease = false

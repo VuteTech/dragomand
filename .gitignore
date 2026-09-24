@@ -1,0 +1,27 @@
+# Rust
+/target/
+
+# CMake build directories (engine superbuild, benchmark variants, IDE profiles)
+build/
+build-*/
+cmake-build-*/
+CMakeUserPresets.json
+
+# Downloaded test models (point DRAGOMAN_TEST_MODELS here)
+/test-models/
+
+# Build-generated files inside the vendored tree
+engine/vendor/marian-fork/src/common/project_version.h
+
+# makepkg working files and outputs
+packaging/arch/src/
+packaging/arch/pkg/
+packaging/arch/*.tar.gz
+packaging/arch/*.pkg.tar*
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# mkdocs build output (user docs, doc/ + mkdocs.yml)
+/site/

@@ -1,0 +1,67 @@
+# The Dragomand website and user documentation, built with mkdocs from
+# the doc/ directory, with the custom theme in mkdocs-theme/ (ported
+# from the site's earlier Hugo theme).
+#
+#   pip install mkdocs mkdocs-static-i18n
+#   mkdocs serve      # live preview at http://127.0.0.1:8000
+#   mkdocs build      # static site in site/
+#
+# English is the default language at /; Bulgarian lives under /bg/,
+# from the *.bg.md suffix files. Untranslated pages fall back to the
+# English content.
+
+site_name: Dragomand
+site_description: 'Dragomand: fully offline machine translation for the Linux desktop, over D-Bus.'
+site_url: https://dragomand.l10n-bg.dev/
+docs_dir: doc
+site_dir: site
+
+theme:
+  name: null
+  custom_dir: mkdocs-theme
+  static_templates:
+    - 404.html
+
+nav:
+  - Home: index.md
+  - Install: install.md
+  - Integrations: integrations.md
+  - Documentation:
+      - Quick start: quickstart.md
+      - Command line: cli.md
+      - Managing models: models.md
+      - Configuration: configuration.md
+      - D-Bus API: dbus-api.md
+      - Troubleshooting: troubleshooting.md
+
+plugins:
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: bg
+          name: Български
+          build: true
+          site_description: 'Dragomand: изцяло офлайн машинен превод за работния плот на Линукс, през D-Bus.'
+          nav_translations:
+            Home: Начало
+            Install: Инсталиране
+            Integrations: Интеграции
+            Documentation: Документация
+            Quick start: Бърз старт
+            Command line: Команден ред
+            Managing models: Управление на моделите
+            Configuration: Настройка
+            D-Bus API: D-Bus API
+            Troubleshooting: Отстраняване на проблеми
+
+markdown_extensions:
+  - admonition
+  - def_list
+  - tables
+  - fenced_code
+  - toc:
+      permalink: true

@@ -1,0 +1,4 @@
+# D-Bus activation for the GNOME Shell search provider.
+[D-BUS Service]
+Name=dev.l10n_bg.dragomand.SearchProvider
+Exec=/usr/lib/dragomand/dragoman-search-provider

@@ -1,0 +1,4 @@
+# D-Bus activation for the KRunner plugin service.
+[D-BUS Service]
+Name=dev.l10n_bg.dragomand.KRunner1
+Exec=/usr/lib/dragomand/dragoman-krunner

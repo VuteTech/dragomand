@@ -1,0 +1,6 @@
+# D-Bus activation: starts dragomand.service on the first call.
+[D-BUS Service]
+Name=dev.l10n_bg.dragomand.Translator1
+SystemdService=dragomand.service
+# Fallback for sessions without the systemd user manager:
+Exec=/usr/lib/dragomand/dragomand

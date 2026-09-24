@@ -1,0 +1,109 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<!--
+  The public contract of dragomand, API major version 1.
+
+  Bus name:    dev.l10n_bg.dragomand.Translator1 (session bus)
+  Object path: /dev/l10n_bg/dragomand/Translator1
+
+  Slow methods return a request object path immediately; results, progress
+  and errors arrive as signals on that object (the xdg-desktop-portal
+  Request pattern). Clients pass options["handle_token"] (string) so they
+  can compute the request path -
+  /dev/l10n_bg/dragomand/request/<escaped sender>/<token>, with every
+  non-alphanumeric character of the sender's unique name replaced by "_" -
+  and subscribe to Response before the method call returns.
+
+  Response codes: 0 success, 1 cancelled, 2 error. Result dictionaries:
+  Translate: "translations" (as), "pivot" (s, only when pivoting);
+  errors put "error" (s).
+
+  Errors: dev.l10n_bg.dragomand.Error.{InvalidArgument, UnsupportedPair,
+  NotInstalled, LimitExceeded, NetworkDisabled, EngineFailure}.
+
+  A test compares this file with the daemon's live introspection, so it
+  cannot drift by accident.
+-->
+<node>
+  <interface name="dev.l10n_bg.dragomand.Translator1">
+    <!--
+      Lists installed pairs and (from the cached records, never the
+      network) available pairs. Per pair: "source" (s), "target" (s),
+      "installed_version" (s), "available_version" (s), "origin"
+      (s: system|user), "size" (t, installed bytes), "architecture" (s).
+      Missing keys mean unknown.
+    -->
+    <method name="ListLanguagePairs">
+      <arg type="aa{sv}" direction="out"/>
+    </method>
+    <!--
+      Install if missing (network), then load. Options: "handle_token" (s),
+      "allow_pivot" (b, default true). Results: "version" (s), "pivot" (s).
+    -->
+    <method name="PreparePair">
+      <arg name="source" type="s" direction="in"/>
+      <arg name="target" type="s" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg type="o" direction="out"/>
+    </method>
+    <!--
+      Translate short text segments; documents go through file descriptors
+      (TranslateFd, a later addition). Options: "handle_token" (s),
+      "html" (b), "allow_pivot" (b, default true),
+      "priority" (s: interactive|batch).
+    -->
+    <method name="Translate">
+      <arg name="source" type="s" direction="in"/>
+      <arg name="target" type="s" direction="in"/>
+      <arg name="segments" type="as" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg type="o" direction="out"/>
+    </method>
+    <!--
+      Install or upgrade one pair from the provider (network).
+      Options: "handle_token" (s). Results: "version" (s),
+      "architecture" (s).
+    -->
+    <method name="InstallPair">
+      <arg name="source" type="s" direction="in"/>
+      <arg name="target" type="s" direction="in"/>
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg type="o" direction="out"/>
+    </method>
+    <!-- Removes every user-store copy of the pair. System copies stay. -->
+    <method name="RemovePair">
+      <arg name="source" type="s" direction="in"/>
+      <arg name="target" type="s" direction="in"/>
+    </method>
+    <!--
+      Refreshes the record cache (network) and reports available updates.
+      Options: "handle_token" (s). Results: "updates" (as, one
+      "src-trg installed -> available" line per update).
+    -->
+    <method name="CheckForUpdates">
+      <arg name="options" type="a{sv}" direction="in"/>
+      <arg type="o" direction="out"/>
+    </method>
+    <!-- "version" (s), "loaded" (as, loaded routes), "queued" (u). -->
+    <method name="GetStatus">
+      <arg type="a{sv}" direction="out"/>
+    </method>
+    <property name="Version" type="s" access="read"/>
+  </interface>
+  <!--
+    Served at /dev/l10n_bg/dragomand/request/<escaped sender>/<token>
+    while a request is in flight. Response is emitted exactly once; the
+    object disappears afterwards.
+  -->
+  <interface name="dev.l10n_bg.dragomand.Request1">
+    <method name="Cancel"/>
+    <signal name="Progress">
+      <arg name="fraction" type="d"/>
+      <arg name="stage" type="s"/>
+    </signal>
+    <signal name="Response">
+      <arg name="code" type="u"/>
+      <arg name="results" type="a{sv}"/>
+    </signal>
+  </interface>
+</node>

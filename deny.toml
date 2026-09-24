@@ -1,0 +1,43 @@
+# cargo-deny configuration.
+# the project is GPL-3.0-or-later, dependencies must be GPL-3.0-compatible,
+# and Intel MKL (proprietary) must never appear. Extend the list only after
+# checking compatibility, and record the check in the license notes.
+
+[graph]
+all-features = true
+
+[licenses]
+version = 2
+allow = [
+    "GPL-3.0-or-later",       # our own crates
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MPL-2.0",                # GPL-compatible via MPL §3.3
+    "Unicode-3.0",            # unicode-ident and friends
+    "Zlib",
+    "CDLA-Permissive-2.0",    # webpki-roots: Mozilla's CA list as data
+]
+
+[bans]
+multiple-versions = "warn"
+
+[advisories]
+version = 2
+yanked = "deny"
+ignore = [
+    # quick-xml < 0.41 DoS-class issues (quadratic attribute checking,
+    # unbounded namespace allocation). Only reachable through zbus_xml, a
+    # dev-dependency that parses our own daemon's introspection output and
+    # our own contract file - trusted input, no exposure. Drop these when
+    # zbus_xml moves to quick-xml >= 0.41.
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"

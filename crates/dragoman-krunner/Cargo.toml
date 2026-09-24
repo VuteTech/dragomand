@@ -1,0 +1,23 @@
+[package]
+name = "dragoman-krunner"
+description = "KRunner plugin service for the Dragomand translation daemon"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+dragoman-client = { path = "../dragoman-client" }
+tokio = { workspace = true, features = ["rt", "macros", "time", "process"] }
+zbus.workspace = true
+
+[dev-dependencies]
+dragoman-engine = { path = "../dragoman-engine", default-features = false }
+dragoman-models = { path = "../dragoman-models" }
+dragomand = { path = "../dragomand", default-features = false }
+sha2 = "0.10"
+tempfile = "3"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
+
+[lints]
+workspace = true

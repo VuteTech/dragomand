@@ -1,0 +1,8 @@
+# Anchor for the GNOME search provider; not a launchable application.
+[Desktop Entry]
+Type=Application
+Name=Translator (Dragomand)
+Comment=Offline translation: search "tr SRC TRG text"
+Icon=dev.l10n_bg.dragomand
+Exec=true
+NoDisplay=true

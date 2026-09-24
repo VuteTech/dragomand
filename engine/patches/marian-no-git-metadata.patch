@@ -1,0 +1,25 @@
+dragomand: the vendored tree has no git metadata, so git_revision.h cannot
+be generated from `git log`. update-vendor.sh writes a fixed
+common/git_revision.h instead; skip the generation when .git is absent.
+
+--- a/marian-fork/src/CMakeLists.txt
++++ b/marian-fork/src/CMakeLists.txt
+@@ -146,6 +146,10 @@
+ # We set MARIAN_GIT_DIR to the appropriate path, depending on whether
+ # ${CMAKE_CURRENT_SOURCE_DIR}/../.git is a directory or file.
+ set(MARIAN_GIT_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../.git)
++if(NOT EXISTS ${MARIAN_GIT_DIR})
++  # dragomand vendored checkout: common/git_revision.h is pre-generated.
++  add_custom_target(marian_version)
++else()
+ if(NOT IS_DIRECTORY ${MARIAN_GIT_DIR}) # i.e., it's a submodule
+   file(READ ${MARIAN_GIT_DIR} MARIAN_GIT_DIR)
+   string(REGEX REPLACE "gitdir: (.*)\n" "\\1" MARIAN_GIT_DIR ${MARIAN_GIT_DIR})
+@@ -161,6 +165,7 @@
+   VERBATIM
+ )
+ add_custom_target(marian_version DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/common/git_revision.h)
++endif()
+ add_dependencies(marian marian_version) # marian must depend on it so that it gets created first
+ # make sure all local dependencies are installed first before this is built
+ add_dependencies(marian 3rd_party_installs)

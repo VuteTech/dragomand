@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 256 256"
+     role="img"
+     aria-labelledby="title desc">
+  <title id="title">dragomand icon</title>
+  <desc id="desc">A continuous monoline g-to-d bridge symbol representing translation between languages.</desc>
+
+  <g fill="none"
+     stroke="#C95736"
+     stroke-width="22"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+    <!-- g -->
+    <circle cx="73" cy="102" r="39"/>
+    <path d="M112 64V143
+             C112 168 96 184 73 184
+             C51 184 36 172 36 155
+             M73 184H174
+             C198 184 218 166 218 141V48"/>
+    <!-- d -->
+    <circle cx="179" cy="102" r="39"/>
+  </g>
+</svg>

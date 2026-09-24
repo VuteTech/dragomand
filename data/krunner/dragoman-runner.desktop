@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=Translate (Dragomand)
+Comment=Offline translation: type "tr SRC TRG text" or "tr text"
+Type=Service
+Icon=dev.l10n_bg.dragomand
+X-KDE-ServiceTypes=Plasma/Runner
+X-Plasma-API=DBus
+X-Plasma-DBusRunner-Service=dev.l10n_bg.dragomand.KRunner1
+X-Plasma-DBusRunner-Path=/dev/l10n_bg/dragomand/krunner
+X-Plasma-DBusRunner-Match-Regex=^tr\s
+X-KDE-PluginInfo-Name=dragomand
+X-KDE-PluginInfo-License=GPL-3.0-or-later
+EnabledByDefault=true

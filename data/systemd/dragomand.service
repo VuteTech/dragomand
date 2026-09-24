@@ -1,0 +1,40 @@
+# systemd user unit for dragomand. Started by D-Bus activation only
+# (Type=dbus); nothing starts at login, and the daemon exits when idle.
+[Unit]
+Description=Offline machine translation daemon
+Documentation=https://dragomand.l10n-bg.dev
+
+[Service]
+Type=dbus
+BusName=dev.l10n_bg.dragomand.Translator1
+ExecStart=/usr/lib/dragomand/dragomand
+# The systemd memory-pressure protocol (handled in lifecycle.rs).
+MemoryPressureWatch=on
+
+# Sandboxing. Every option below was verified to work in a user unit with
+# the real engine translating; user-unit namespacing
+# requires PrivateUsers=yes, which must stay first in spirit: without it
+# the Protect*/Private* options fail with status 226/NAMESPACE.
+# "+" runs outside the sandbox: the writable directories must exist
+# before the namespace is built, or namespacing fails on fresh accounts.
+ExecStartPre=+/usr/bin/mkdir -p %h/.local/share/dragomand %h/.cache/dragomand
+PrivateUsers=yes
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=-%h/.local/share/dragomand -%h/.cache/dragomand
+PrivateTmp=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=yes
+LockPersonality=yes
+RestrictRealtime=yes
+MemoryDenyWriteExecute=yes
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+UMask=0077

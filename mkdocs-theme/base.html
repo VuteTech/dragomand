@@ -1,0 +1,147 @@
+{#-
+  The page skeleton, ported from the Hugo theme of dragomand.l10n-bg.dev
+  (baseof.html and the head, header and footer partials). Bilingual: the
+  mkdocs-static-i18n plugin builds the Bulgarian tree under bg/, and this
+  template picks its strings by locale, like the Hugo i18n files did.
+-#}
+{%- set rel_url = page.url if page else '' -%}
+{%- if rel_url == '.' or rel_url == './' -%}{%- set rel_url = '' -%}{%- endif -%}
+{%- set locale = 'bg' if rel_url.startswith('bg/') or rel_url == 'bg' else 'en' -%}
+{%- set en_rel = rel_url[3:] if locale == 'bg' else rel_url -%}
+{%- set is_home = rel_url in ('', 'bg/') -%}
+{%- if locale == 'bg' -%}
+  {%- set t = {
+    'skip': 'Към съдържанието',
+    'pages': 'Страници',
+    'resources': 'Ресурси',
+    'about': 'За сайта',
+    'made': 'Създаден с MkDocs',
+    'license': 'Dragomand е свободен софтуер под лиценз GNU GPL 3.0 или по-нов.',
+    'site_prefix': 'Съдържанието на този сайт е лицензирано под',
+    'site_license': 'Creative Commons Attribution-ShareAlike 4.0 International License',
+    'sponsored': 'С подкрепата на',
+    'on_this_page': 'На тази страница',
+    'description': 'Dragomand: изцяло офлайн машинен превод за работния плот на Линукс, през D-Bus.'
+  } -%}
+  {%- set resources = [
+    ('https://github.com/VuteTech/dragomand', 'Изходен код'),
+    ('https://l10n-bg.dev/', 'Българска локализация на софтуер'),
+    ('https://github.com/mozilla/translations', 'Преводните модели на Mozilla'),
+    ('https://support.mozilla.org/bg/kb/website-translation', 'Firefox Translations')
+  ] -%}
+{%- else -%}
+  {%- set t = {
+    'skip': 'Skip to content',
+    'pages': 'Pages',
+    'resources': 'Resources',
+    'about': 'About this site',
+    'made': 'Made with MkDocs',
+    'license': 'Dragomand is free software, licensed under the GNU GPL 3.0 or later.',
+    'site_prefix': 'Site content is licensed under a',
+    'site_license': 'Creative Commons Attribution-ShareAlike 4.0 International License',
+    'sponsored': 'Sponsored by',
+    'on_this_page': 'On this page',
+    'description': config.site_description
+  } -%}
+  {%- set resources = [
+    ('https://github.com/VuteTech/dragomand', 'Source code'),
+    ('https://l10n-bg.dev/', 'Bulgarian software localization'),
+    ('https://github.com/mozilla/translations', 'Mozilla translation models'),
+    ('https://support.mozilla.org/en-US/kb/website-translation', 'Firefox Translations')
+  ] -%}
+{%- endif -%}
+<!DOCTYPE html>
+<html lang="{{ locale }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{% if is_home or not page %}{{ config.site_name }}{% else %}{{ page.title }} - {{ config.site_name }}{% endif %}{% endblock %}</title>
+  <meta name="description" content="{% if page and page.meta and page.meta.description %}{{ page.meta.description }}{% else %}{{ t.description }}{% endif %}">
+  <link rel="icon" type="image/svg+xml" href="{{ 'dragomand-icon.svg' | url }}">
+  <link rel="preload" href="{{ 'fonts/VelekaWorld-Regular.woff2' | url }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ 'style.css' | url }}">
+  {%- if config.site_url and page %}
+  <link rel="canonical" href="{{ config.site_url }}{{ rel_url }}">
+  <link rel="alternate" hreflang="en" href="{{ config.site_url }}{{ en_rel }}">
+  <link rel="alternate" hreflang="bg" href="{{ config.site_url }}bg/{{ en_rel }}">
+  {%- endif %}
+</head>
+<body>
+  <a class="skip-nav" href="#content">{{ t.skip }}</a>
+  <header class="site-header">
+    <div class="header-top">
+      <div class="container">
+        <a class="site-title" href="{{ ('bg/' if locale == 'bg' else '') | url }}">
+          <img class="site-logo" src="{{ 'dragomand-logo.svg' | url }}" alt="{{ config.site_name }}" width="1000" height="260">
+        </a>
+        <nav class="lang-switch">
+          {%- if locale == 'bg' %}
+          <a href="{{ (en_rel or '.') | url }}" lang="en" hreflang="en">English</a>
+          <span class="active">Български</span>
+          {%- else %}
+          <span class="active">English</span>
+          <a href="{{ ('bg/' ~ en_rel) | url }}" lang="bg" hreflang="bg">Български</a>
+          {%- endif %}
+        </nav>
+      </div>
+    </div>
+    <nav class="header-nav">
+      <div class="container">
+        {%- for item in nav %}
+        {%- if item.is_section %}
+        {%- set first_child = item.children | selectattr('is_page') | first %}
+        <a href="{{ first_child.url | url }}"{% if item.active %} class="active"{% endif %}>{{ item.title }}</a>
+        {%- elif item.is_page and not loop.first %}
+        <a href="{{ item.url | url }}"{% if item.active %} class="active"{% endif %}>{{ item.title }}</a>
+        {%- endif %}
+        {%- endfor %}
+      </div>
+    </nav>
+  </header>
+  <main id="content" class="container{% if page and page.parent %} with-sidebar{% endif %}">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-columns">
+        <div class="footer-col">
+          <h4>{{ t.pages }}</h4>
+          <ul>
+            {%- for item in nav %}
+            {%- if item.is_page %}
+            <li><a href="{{ item.url | url }}">{{ item.title }}</a></li>
+            {%- elif item.is_section %}
+            {%- set first_child = item.children | selectattr('is_page') | first %}
+            <li><a href="{{ first_child.url | url }}">{{ item.title }}</a></li>
+            {%- endif %}
+            {%- endfor %}
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>{{ t.resources }}</h4>
+          <ul>
+            {%- for link, name in resources %}
+            <li><a href="{{ link }}">{{ name }}</a></li>
+            {%- endfor %}
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>{{ t.about }}</h4>
+          <ul>
+            <li><a href="https://www.mkdocs.org/">{{ t.made }}</a></li>
+          </ul>
+        </div>
+        <div class="footer-col footer-sponsor">
+          <h4>{{ t.sponsored }}</h4>
+          <a href="https://vute.tech">
+            <img src="{{ 'vute.svg' | url }}" alt="Vute Tech" width="594" height="300">
+          </a>
+        </div>
+      </div>
+      <p class="footer-copy">&copy; {{ build_date_utc.strftime('%Y') }} Blagovest Petrov &middot; {{ t.license }}
+        {{ t.site_prefix }}
+        <a href="https://creativecommons.org/licenses/by-sa/4.0/">{{ t.site_license }}</a>.</p>
+    </div>
+  </footer>
+</body>
+</html>

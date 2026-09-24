@@ -1,0 +1,34 @@
+# Maintainer: Blagovest Petrov <blagovest@petrovs.info>
+#
+# EXAMPLE model package: fills a read-only system store with the bg<->en
+# models using `dragomanctl store install --root`.
+#
+# License: the mozilla/translations README states "The model files are
+# distributed under the MPL 2.0 license" (checked 2026-09-24; the Remote
+# Settings records carry no per-file license field yet - cite the README
+# if a reviewer asks; docs/packaging.md "Model packages" has the chain).
+#
+# The build downloads from Mozilla, so run makepkg with network access.
+# pkgver pins the model version accepted at package time; bump it when
+# `dragomanctl update --check` reports a newer release.
+
+pkgname=dragomand-model-bg-en
+pkgver=3.0
+pkgrel=1
+pkgdesc="Bulgarian <-> English translation models for dragomand"
+arch=(any)
+url="https://dragomand.l10n-bg.dev"
+license=(MPL-2.0)
+depends=(dragomand)
+makedepends=()
+
+package() {
+  dragomanctl store install --root "$pkgdir/usr/share/dragomand/models" \
+    bg-en en-bg
+
+  # The store must contain exactly the pinned version.
+  for pair in bg-en en-bg; do
+    test -d "$pkgdir/usr/share/dragomand/models/mozilla-remote-settings/$pair/$pkgver" ||
+      { echo "expected $pair $pkgver; live records moved on - bump pkgver" >&2; return 1; }
+  done
+}

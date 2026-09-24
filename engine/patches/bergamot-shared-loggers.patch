@@ -1,0 +1,45 @@
+dragomand: the daemon runs one BlockingService per worker, several per
+process. Each service owns a bergamot::Logger whose constructor registers
+marian's loggers in spdlog's process-global registry — the second service
+throws "logger with name 'general' already exists" — and whose destructor
+drops names other live services still use. Create the loggers once and keep
+them for the life of the process; each Logger construction only (re)applies
+its configured level.
+diff --git a/src/translator/logging.h b/src/translator/logging.h
+index ff7f767..9d2ad1d 100644
+--- a/src/translator/logging.h
++++ b/src/translator/logging.h
+@@ -16,9 +16,13 @@ class Logger {
+     }
+   };
+ 
+-  Logger(const Config &config) : marianLoggers_(createLoggers()) {
++  Logger(const Config &config) {
+     // We are manually creating loggers, because this is usually created in marian as a side-effect of
+-    // config-parsing.
++    // config-parsing. dragomand: the spdlog registry is process-global and
++    // several services coexist in the daemon, so create the loggers exactly
++    // once and share them between all service instances.
++    static std::vector<MarianLogger> sharedLoggers = createLoggers();
++    marianLoggers_ = sharedLoggers;
+     for (auto &logger : marianLoggers_) {
+       setLoggingLevel(*logger, config.level);
+     }
+@@ -49,14 +53,9 @@ class Logger {
+   }
+ 
+   ~Logger() {
+-    // We need to manually destroy the loggers, as marian doesn't do
+-    // that but will complain when a new marian::Config tries to
+-    // initialise loggers with the same name.
+-    for (auto &logger : marianLoggers_) {
+-      if (logger) {
+-        spdlog::drop(logger->name());
+-      }
+-    }
++    // dragomand: the loggers are shared by every service in the process
++    // (see the constructor); dropping them from the registry here would
++    // break the other live services. They last for the whole process.
+   }
+ 
+   // Explicit destructor above is an indicator we should not allow this class to copy-construct.

@@ -1,0 +1,10 @@
+[Unit]
+Description=Weekly check for translation model updates
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+RandomizedDelaySec=6h
+
+[Install]
+WantedBy=timers.target

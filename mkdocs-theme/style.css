@@ -1,0 +1,577 @@
+/* Ported from the Hugo theme of dragomand.l10n-bg.dev: clean, modern, no JS */
+
+/* ---- Fonts ---- */
+/* Veleka World, Stefan Peev (LOCAL FONTS), serif with modern Bulgarian
+   Cyrillic letterforms. Self-hosted, SIL OFL 1.1, see fonts/OFL.txt. */
+
+@font-face {
+  font-family: "Veleka World";
+  src: url("fonts/VelekaWorld-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Veleka World";
+  src: url("fonts/VelekaWorld-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ---- Reset ---- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Veleka World", Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+  line-height: 1.75;
+  color: #2c2c2c;
+  background: #fafaf8;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Layout ---- */
+
+.container {
+  max-width: 740px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---- Skip nav (accessibility) ---- */
+
+.skip-nav {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: #C95736;
+  color: #fff;
+  padding: 8px 16px;
+  text-decoration: none;
+  font-size: 0.85rem;
+  z-index: 100;
+}
+
+.skip-nav:focus {
+  left: 0;
+}
+
+/* ---- Header ---- */
+
+.site-header {
+  background: #fff;
+  border-bottom: 1px solid #d8d8d4;
+}
+
+.header-top {
+  padding: 18px 0 14px;
+  border-bottom: 1px solid #eee;
+}
+
+.site-title {
+  color: #1a1a1a;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.25rem;
+  letter-spacing: -0.01em;
+}
+
+.site-title:visited { color: #1a1a1a; }
+.site-title:hover { color: #C95736; }
+
+.header-nav {
+  padding: 0;
+  background: #f5f5f2;
+}
+
+.header-nav .container {
+  display: block;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.header-nav a {
+  display: inline-block;
+  padding: 8px 14px;
+  color: #2c2c2c;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-bottom: 2px solid transparent;
+}
+
+.header-nav a:visited { color: #2c2c2c; }
+
+.header-nav a:hover {
+  background: #eceae6;
+  color: #C95736;
+}
+
+.header-nav a.active {
+  border-bottom-color: #C95736;
+  color: #C95736;
+  font-weight: 600;
+}
+
+/* ---- Footer ---- */
+
+.site-footer {
+  margin-top: 48px;
+  padding: 32px 0 40px;
+  border-top: 1px solid #d8d8d4;
+  background: #f5f5f2;
+  color: #555;
+  font-size: 0.88rem;
+}
+
+.footer-columns {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.footer-col {
+  display: table-cell;
+  vertical-align: top;
+  padding-right: 24px;
+}
+
+.footer-col:last-child {
+  padding-right: 0;
+}
+
+.footer-col h4 {
+  margin: 0 0 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+.footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.footer-col li {
+  margin: 4px 0;
+}
+
+.footer-col a {
+  color: #C95736;
+  text-decoration: none;
+}
+
+.footer-col a:hover {
+  text-decoration: underline;
+}
+
+.footer-copy {
+  margin: 24px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid #ddd;
+  color: #999;
+  font-size: 0.82rem;
+}
+
+/* ---- Main content ---- */
+
+main.container {
+  padding-top: 32px;
+  padding-bottom: 32px;
+  min-height: 50vh;
+}
+
+/* ---- Typography ---- */
+
+h1, h2, h3, h4, h5, h6 {
+  color: #1a1a1a;
+  line-height: 1.3;
+  margin: 1.8em 0 0.6em;
+  font-weight: 600;
+}
+
+h1 { font-size: 1.6rem; margin-top: 0; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.1rem; }
+
+p {
+  margin: 1em 0;
+}
+
+strong { font-weight: 600; }
+
+/* ---- Links ---- */
+
+a {
+  color: #C95736;
+  text-decoration: underline;
+  text-decoration-color: #E7BBAA;
+  text-underline-offset: 2px;
+}
+
+a:visited {
+  color: #8F5B49;
+  text-decoration-color: #DCC3B9;
+}
+
+a:hover {
+  color: #9B432A;
+  text-decoration-color: #9B432A;
+}
+
+/* ---- Article meta ---- */
+
+.meta {
+  color: #777;
+  font-size: 0.9rem;
+  margin: 0.2em 0 1.2em;
+}
+
+.tags {
+  font-size: 0.85rem;
+  margin-bottom: 1.5em;
+}
+
+.tags a {
+  color: #C95736;
+  background: #F9ECE7;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-decoration: none;
+  font-size: 0.82rem;
+}
+
+.tags a:hover {
+  background: #F3DCD3;
+}
+
+/* ---- Framed content (home page intro) ---- */
+
+.framed {
+  border-left: 4px solid #C95736;
+  padding: 20px 24px;
+  background: #f4f4f0;
+  border-radius: 2px;
+}
+
+.framed p:first-child { margin-top: 0; }
+.framed p:last-child { margin-bottom: 0; }
+
+/* ---- Lists ---- */
+
+ul, ol {
+  padding-left: 1.8em;
+  margin: 1em 0;
+}
+
+li {
+  margin: 0.4em 0;
+}
+
+li > ul, li > ol {
+  margin: 0.2em 0;
+}
+
+/* ---- Blockquotes ---- */
+
+blockquote {
+  margin: 1.5em 0;
+  padding: 12px 20px;
+  border-left: 4px solid #E7BBAA;
+  background: #FBF4F1;
+  color: #444;
+  border-radius: 2px;
+}
+
+blockquote p:first-child { margin-top: 0; }
+blockquote p:last-child { margin-bottom: 0; }
+
+/* ---- Code ---- */
+
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 0.88em;
+  background: #f0eeea;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+pre {
+  background: #f0eeea;
+  padding: 16px 20px;
+  overflow-x: auto;
+  line-height: 1.5;
+  font-size: 0.88rem;
+  border-radius: 4px;
+  border: 1px solid #e4e0dc;
+}
+
+pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* ---- Tables ---- */
+
+table {
+  border-collapse: collapse;
+  margin: 1.5em 0;
+  width: 100%;
+  font-size: 0.95rem;
+}
+
+th, td {
+  border: 1px solid #d8d8d4;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+th {
+  background: #f0eeea;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+tr:nth-child(even) td {
+  background: #fafaf8;
+}
+
+/* ---- Horizontal rule ---- */
+
+hr {
+  border: none;
+  border-top: 1px solid #e0e0e0;
+  margin: 2em 0;
+}
+
+/* ---- Images ---- */
+
+img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* ---- Footnotes ---- */
+
+.footnotes {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 3em;
+  padding-top: 1.5em;
+  border-top: 1px solid #e0e0e0;
+}
+
+.footnotes p {
+  margin: 0.5em 0;
+}
+
+/* ---- Selection ---- */
+
+::selection {
+  background: #F0D2C6;
+  color: #1a1a1a;
+}
+
+/* ---- Print ---- */
+
+@media print {
+  .site-header, .site-footer { display: none; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  a { color: #000; text-decoration: underline; }
+  .framed { border: 1px solid #ccc; background: none; }
+}
+
+/* ---- Mobile ---- */
+
+@media (max-width: 640px) {
+  body { font-size: 1rem; }
+
+  .container { padding: 0 16px; }
+
+  main.container {
+    padding-top: 24px;
+    padding-bottom: 24px;
+  }
+
+  .header-top { padding: 14px 0 10px; text-align: center; }
+
+  .header-nav .container { text-align: center; }
+
+  .header-nav a {
+    padding: 8px 10px;
+    font-size: 0.85rem;
+  }
+
+  h1 { font-size: 1.35rem; }
+  h2 { font-size: 1.15rem; }
+
+  table { font-size: 0.85rem; }
+  th, td { padding: 6px 8px; }
+
+  pre { padding: 12px 14px; font-size: 0.82rem; }
+
+  .framed { padding: 16px 18px; }
+
+  .footer-columns {
+    display: block;
+  }
+
+  .footer-col {
+    display: block;
+    padding-right: 0;
+    margin-bottom: 20px;
+  }
+}
+
+/* ---- Dragomand site additions -------------------------------------- */
+
+.header-top .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.lang-switch {
+  font-size: 0.85rem;
+}
+
+.lang-switch a,
+.lang-switch span {
+  margin-left: 10px;
+  text-decoration: none;
+}
+
+.lang-switch a { color: #C95736; }
+.lang-switch a:hover { text-decoration: underline; }
+.lang-switch span.active { color: #666; }
+
+.framed img {
+  display: block;
+  margin: 0 auto 1rem;
+  width: min(420px, 100%);
+  height: auto;
+}
+
+.site-title { display: inline-flex; }
+
+.site-logo {
+  display: block;
+  height: 44px;
+  width: auto;
+}
+
+.footer-sponsor img {
+  display: block;
+  height: 40px;
+  width: auto;
+}
+
+/* ---- MkDocs additions (docs section) -------------------------------- */
+
+/* Definition lists (the configuration reference) */
+
+dt {
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+dd {
+  margin: 0.2em 0 1em 1.6em;
+}
+
+/* Admonitions (note, warning) */
+
+.admonition {
+  margin: 1.5em 0;
+  padding: 12px 20px;
+  border-left: 4px solid #E7BBAA;
+  background: #FBF4F1;
+  border-radius: 2px;
+}
+
+.admonition-title {
+  margin: 0 0 0.3em;
+  font-weight: 600;
+  color: #9B432A;
+}
+
+.admonition p:last-child { margin-bottom: 0; }
+
+/* Pages inside the Documentation section get a wider container with a
+   sidebar; plain pages keep the narrow reading column. */
+
+main.container.with-sidebar {
+  max-width: 1060px;
+}
+
+.docs-sidebar {
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.docs-sidebar h4 {
+  margin: 0 0 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #2c2c2c;
+}
+
+.docs-sidebar h4 + ul { margin-bottom: 1.6em; }
+
+.docs-sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.docs-sidebar li { margin: 5px 0; }
+
+.docs-sidebar a {
+  color: #2c2c2c;
+  text-decoration: none;
+}
+
+.docs-sidebar a:visited { color: #2c2c2c; }
+
+.docs-sidebar a:hover { color: #C95736; }
+
+.docs-sidebar a.active {
+  color: #C95736;
+  font-weight: 600;
+}
+
+.docs-sidebar .page-toc a { color: #666; }
+.docs-sidebar .page-toc a:hover { color: #C95736; }
+
+@media (min-width: 900px) {
+  .docs-layout {
+    display: grid;
+    grid-template-columns: 210px minmax(0, 740px);
+    gap: 40px;
+    align-items: start;
+  }
+
+  .docs-sidebar {
+    position: sticky;
+    top: 24px;
+  }
+}
+
+@media (max-width: 899px) {
+  .docs-sidebar {
+    margin-bottom: 2em;
+    padding-bottom: 1em;
+    border-bottom: 1px solid #e0e0e0;
+  }
+
+  .docs-sidebar .page-toc { display: none; }
+}

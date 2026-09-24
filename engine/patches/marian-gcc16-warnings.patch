@@ -1,0 +1,19 @@
+dragomand: GCC >= 15 reports array-bounds false positives when inlining
+std::shared_ptr assignment (a long-standing GCC issue, e.g. GCC PR 101204
+family), which marian's -Werror turns fatal. Demote it to a plain warning,
+following the same pattern upstream uses for newer-GCC warnings.
+
+--- a/marian-fork/CMakeLists.txt
++++ b/marian-fork/CMakeLists.txt
+@@ -336,6 +336,11 @@
+     list(APPEND ALL_WARNINGS -Wno-template-id-cdtor;)
+   endif()
+
++  # GCC 15/16: shared_ptr inlining trips array-bounds false positives.
++  if(CMAKE_COMPILER_IS_GNUCC AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 15.0)
++    list(APPEND ALL_WARNINGS -Wno-error=array-bounds;)
++  endif()
++
+   if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+     # these flags are not known to clang
+     set(CMAKE_GCC_FLAGS "-Wl,--no-as-needed")

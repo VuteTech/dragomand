@@ -1,0 +1,32 @@
+[package]
+name = "dragoman-models"
+description = "Model stores, manifests and download providers for dragomand"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+rustix = { version = "1", features = ["fs"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+thiserror.workspace = true
+zstd = "0.13"
+
+[dev-dependencies]
+dragoman-engine = { path = "../dragoman-engine", default-features = false }
+serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+tokio = { workspace = true, features = ["sync", "rt", "macros"] }
+zstd = "0.13"
+
+[features]
+# Enables the opt-in compatibility test that loads real models with the real
+# engine (tests/compat.rs).
+compat-test = ["dragoman-engine/bergamot"]
+
+[lints]
+workspace = true

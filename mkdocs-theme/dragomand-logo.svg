@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1000 260"
+     role="img"
+     aria-labelledby="title desc">
+  <title id="title">dragomand logo</title>
+  <desc id="desc">A custom rounded lowercase wordmark. The descender of the letter g continues beneath the name and rises into the final d, forming a bridge between languages.</desc>
+
+  <g fill="none"
+     stroke="#1B1D1F"
+     stroke-width="20"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+    <!-- d -->
+    <circle cx="82" cy="115" r="38"/>
+    <path d="M120 42V153"/>
+
+    <!-- r -->
+    <path d="M164 153V78 M164 102C164 84 182 76 204 78"/>
+
+    <!-- a -->
+    <circle cx="259" cy="115" r="38"/>
+    <path d="M297 78V153"/>
+
+    <!-- g bowl -->
+    <circle cx="365" cy="115" r="38"/>
+
+    <!-- o -->
+    <circle cx="471" cy="115" r="38"/>
+
+    <!-- m -->
+    <path d="M535 153V79
+             M535 101C535 84 545 76 560 76C575 76 583 86 583 102V153
+             M583 102C583 85 593 76 608 76C623 76 631 86 631 102V153"/>
+
+    <!-- a -->
+    <circle cx="690" cy="115" r="38"/>
+    <path d="M728 78V153"/>
+
+    <!-- n -->
+    <path d="M772 153V79
+             M772 101C772 84 784 76 800 76C818 76 828 88 828 106V153"/>
+  </g>
+
+  <!-- The translation bridge: g descender to final d -->
+  <g fill="none"
+     stroke="#C95736"
+     stroke-width="20"
+     stroke-linecap="round"
+     stroke-linejoin="round">
+    <path d="M403 78V163
+             C403 187 388 204 365 204
+             C344 204 329 192 329 176
+             M365 204H885
+             C910 204 928 186 928 162V42"/>
+    <circle cx="890" cy="115" r="38"/>
+  </g>
+</svg>

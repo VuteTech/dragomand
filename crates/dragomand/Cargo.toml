@@ -1,0 +1,41 @@
+[package]
+name = "dragomand"
+description = "Offline machine translation daemon for the desktop (D-Bus, Bergamot models)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[features]
+default = ["bergamot"]
+# The real C++ engine. Without it the daemon only has the fake backend
+# (integration tests run that way).
+bergamot = ["dragoman-engine/bergamot"]
+
+[dependencies]
+futures-util = { version = "0.3", default-features = false }
+dragoman-client = { path = "../dragoman-client" }
+dragoman-engine = { path = "../dragoman-engine", default-features = false }
+dragoman-models = { path = "../dragoman-models" }
+rustix = { version = "1", features = ["event"] }
+serde = { version = "1", features = ["derive"] }
+thiserror.workspace = true
+toml = "0.9"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "sync", "time", "signal"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+zbus.workspace = true
+
+[dev-dependencies]
+futures-util = { version = "0.3", default-features = false }
+dragoman-client = { path = "../dragoman-client" }
+dragoman-engine = { path = "../dragoman-engine", default-features = false }
+dragoman-models = { path = "../dragoman-models" }
+sha2 = "0.10"
+tempfile = "3"
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time"] }
+zbus.workspace = true
+zbus_xml = "5"
+
+[lints]
+workspace = true

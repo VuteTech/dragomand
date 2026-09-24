@@ -1,0 +1,52 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Test Runner CLI (node)",
+      "program": "${workspaceFolder}/tools/test-runner-cli",
+      "args": ["-e=node"],
+      "sourceMaps": true,
+      "smartStep": true
+    },
+    {
+      "type": "chrome",
+      "request": "attach",
+      "name": "Attach to Chrome",
+      "port": 9333,
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "smartStep": true
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Mocha Tests (node)",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "bdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/test/test-main"
+      ],
+      "internalConsoleOptions": "openOnSessionStart",
+      "sourceMaps": true,
+      "smartStep": true
+    },
+    {
+      "name": "Remote Browser via Webkit Adaptor",
+      "type": "chrome",
+      "request": "attach",
+      "port": 9000,
+      "webRoot": "${workspaceFolder}",
+      "sourceMaps": true,
+      "smartStep": true
+    }
+  ]
+}

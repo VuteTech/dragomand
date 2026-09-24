@@ -1,0 +1,30 @@
+dragomand: marian's version module runs `git rev-parse` in a tree without
+its own .git, so git walks up and stamps the *containing* repository's SHA
+into src/common/project_version.h (which is configure_file'd into the source
+tree) — dirtying the vendored tree on every build. Use a fixed marker when
+no .git is present.
+
+--- a/marian-fork/cmake/GetVersionFromFile.cmake
++++ b/marian-fork/cmake/GetVersionFromFile.cmake
+@@ -21,11 +21,16 @@
+   file(STRINGS ${CMAKE_CURRENT_SOURCE_DIR}/VERSION PROJECT_VERSION_STRING)
+ endif()
+
+-# Get current commit SHA from git
+-execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
+-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+-  OUTPUT_VARIABLE PROJECT_VERSION_GIT_SHA
+-  OUTPUT_STRIP_TRAILING_WHITESPACE)
++# Get current commit SHA from git; without our own .git, git would report
++# whatever repository happens to contain this vendored tree.
++if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/.git)
++  execute_process(COMMAND ${GIT_EXECUTABLE} rev-parse --short HEAD
++    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
++    OUTPUT_VARIABLE PROJECT_VERSION_GIT_SHA
++    OUTPUT_STRIP_TRAILING_WHITESPACE)
++else()
++  set(PROJECT_VERSION_GIT_SHA "vendored")
++endif()
+
+ # Get partial versions into a list
+ string(REGEX MATCHALL "-.*$|[0-9]+" PROJECT_PARTIAL_VERSION_LIST

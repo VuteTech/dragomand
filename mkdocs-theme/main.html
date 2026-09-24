@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+{%- if page.meta and page.meta.framed %}
+<div class="framed">
+  {{ page.content }}
+</div>
+{%- elif page.parent %}
+<div class="docs-layout">
+  <aside class="docs-sidebar">
+    <h4>{{ page.parent.title }}</h4>
+    <ul>
+      {%- for p in page.parent.children %}
+      {%- if p.is_page %}
+      <li><a href="{{ p.url | url }}"{% if p == page %} class="active"{% endif %}>{{ p.title }}</a></li>
+      {%- endif %}
+      {%- endfor %}
+    </ul>
+    {%- set headings = [] %}
+    {%- for item in page.toc %}
+      {%- for child in item.children %}
+        {%- if headings.append(child) %}{% endif %}
+      {%- endfor %}
+    {%- endfor %}
+    {%- if headings %}
+    <h4>{{ t.on_this_page }}</h4>
+    <ul class="page-toc">
+      {%- for heading in headings %}
+      <li><a href="{{ heading.url }}">{{ heading.title }}</a></li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  </aside>
+  <article>
+    {{ page.content }}
+  </article>
+</div>
+{%- else %}
+<article>
+  {{ page.content }}
+</article>
+{%- endif %}
+{% endblock %}

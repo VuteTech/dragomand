@@ -1,0 +1,8 @@
+# Periodic model update check. The daemon is not always running, so the
+# check comes from this timer-activated oneshot, not an in-daemon timer.
+[Unit]
+Description=Check for translation model updates
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dragomanctl update --check
