@@ -1,0 +1,27 @@
+# Maintainer: Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The meta package that installs every dragomand model package.
+# packaging/obs/models/prepare-meta.py stamps the placeholders.
+
+pkgname=dragomand-models-all
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc="All translation models for dragomand (@COUNT@ languages, roughly @SIZE@)"
+arch=(any)
+url="https://dragomand.l10n-bg.dev"
+license=(GPL-3.0-or-later)
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+  # Declared here rather than globally: makepkg installs global depends
+  # for the build, which would pull every model (gigabytes) and dragomand
+  # into the build root for a package that only ships a README.
+  depends=(dragomand
+@DEPENDS@)
+  cd "$pkgname-$pkgver"
+  install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/README"
+}

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+// SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 //! `dragomanctl store …`: direct store access without a session bus,
@@ -7,6 +9,7 @@
 use std::path::PathBuf;
 
 use dragoman_models::http::ReqwestHttp;
+use dragoman_models::records::FileType;
 use dragoman_models::remote_settings::{RemoteSettingsConfig, RemoteSettingsProvider};
 use dragoman_models::{Origin, Stores};
 
@@ -115,6 +118,15 @@ pub async fn available(json: bool) -> Result<(), Fail> {
                     "version": set.version.as_str(),
                     "architecture": set.architecture,
                     "last_modified": set.files.values().filter_map(|r| r.last_modified).max(),
+                    // Bytes that `store install` writes: every file but the
+                    // optional lexical shortlist (off by default) and file
+                    // types this version does not know.
+                    "size": set
+                        .files
+                        .iter()
+                        .filter(|(t, _)| !matches!(t, FileType::Lex | FileType::Unknown))
+                        .map(|(_, r)| r.decompressed_size)
+                        .sum::<u64>(),
                 })
             })
             .collect();

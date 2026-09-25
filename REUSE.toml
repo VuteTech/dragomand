@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# Copyright and licensing for files that cannot carry a comment header
+# (https://reuse.software/spec/). Every other file of ours states both in
+# its own header; engine/vendor/ is third-party code that keeps the
+# headers and license files of its authors.
+version = 1
+
+[[annotations]]
+path = [
+    "**.md",
+    "doc/CNAME",
+    "artwork/*.svg",
+    "mkdocs-theme/*.svg",
+    "Cargo.lock",
+    "packaging/obs/debian.changelog",
+    "packaging/obs/debian.control",
+    "packaging/obs/dragomand.dsc",
+    "packaging/obs/models/debian.changelog",
+    "packaging/obs/models/debian.control",
+    "packaging/obs/models/dragomand-model.dsc",
+    "packaging/obs/models/meta/debian.changelog",
+    "packaging/obs/models/meta/debian.control",
+    "packaging/obs/models/meta/dragomand-models-all.dsc",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = [
+    "2026 Blagovest Petrov <blagovest@petrovs.info>",
+    "2026 Vute Tech Ltd. <https://vute.tech>",
+]
+SPDX-License-Identifier = "GPL-3.0-or-later"
+
+# Veleka World, by Stefan Peev (see mkdocs-theme/fonts/OFL.txt).
+[[annotations]]
+path = "mkdocs-theme/fonts/**"
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2016 Stefan Peev, Context Ltd <context.bg@gmail.com>"
+SPDX-License-Identifier = "OFL-1.1"

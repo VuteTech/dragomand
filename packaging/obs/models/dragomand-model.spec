@@ -1,6 +1,8 @@
 #
 # spec file for a dragomand model package (openSUSE and Fedora targets on OBS)
 #
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # One package per language: every direction between @LANGUAGE@ and English

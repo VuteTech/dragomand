@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+// SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 //! Mozilla toolkit version ordering, for the version shapes that occur in

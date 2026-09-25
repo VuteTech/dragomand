@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Plans the model packages: one package per language, holding every
 direction the provider offers between it and English.

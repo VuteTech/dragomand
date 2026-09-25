@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
 # The Dragomand website and user documentation, built with mkdocs from
 # the doc/ directory, with the custom theme in mkdocs-theme/ (ported
 # from the site's earlier Hugo theme).

@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
 # Builds the website and user documentation (doc/ + mkdocs-theme/) with
 # mkdocs and deploys it to GitHub Pages. This replaces the Hugo workflow
 # of the retired dragomand.l10n-bg.dev repository; doc/CNAME carries the

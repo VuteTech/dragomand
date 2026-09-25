@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
 # Publishes distribution packages when a GitHub release is published.
 # This is the only workflow that talks to OBS; pushes and pull requests
 # run ci.yml alone.
@@ -121,8 +125,9 @@ jobs:
           osc addremove
           osc commit -m "Release $TAG"
 
-  # One package per language with every model Mozilla publishes. Only
-  # packages whose models changed since the last release are uploaded.
+  # One package per language with every model Mozilla publishes, plus the
+  # dragomand-models-all meta package. Only packages whose models changed
+  # since the last release are uploaded.
   obs-models:
     needs: ci
     runs-on: ubuntu-24.04

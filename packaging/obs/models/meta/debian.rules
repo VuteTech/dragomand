@@ -1,0 +1,12 @@
+#!/usr/bin/make -f
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# A metapackage: its dependencies are the point; it ships only a README.
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -Dm644 README $(CURDIR)/debian/dragomand-models-all/usr/share/doc/dragomand-models-all/README

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 # Builds the release source tarball: the git tree at HEAD (which includes

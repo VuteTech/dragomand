@@ -138,7 +138,7 @@ Lists every pair the model provider offers, with the version and
 architecture that `store install` would fetch. It contacts the provider
 (Mozilla's Remote Settings) but not the daemon; with `--json` each entry
 also carries the date of its newest record, which the model packages use
-for their version.
+for their version, and the number of bytes an install writes.
 
 ### store install
 

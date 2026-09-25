@@ -1,3 +1,7 @@
+SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+SPDX-License-Identifier: MIT
+
 dragomand: marian's version module runs `git rev-parse` in a tree without
 its own .git, so git walks up and stamps the *containing* repository's SHA
 into src/common/project_version.h (which is configure_file'd into the source

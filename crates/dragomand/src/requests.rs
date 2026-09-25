@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+// SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 //! Request objects (`dev.l10n_bg.dragomand.Request1`) and per-client

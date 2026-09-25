@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
 # systemd user unit for dragomand. Started by D-Bus activation only
 # (Type=dbus); nothing starts at login, and the daemon exits when idle.
 [Unit]

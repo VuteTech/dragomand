@@ -1,6 +1,11 @@
 <!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
  "http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
 <!--
+  SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+  SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+  SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<!--
   The public contract of dragomand, API major version 1.
 
   Bus name:    dev.l10n_bg.dragomand.Translator1 (session bus)

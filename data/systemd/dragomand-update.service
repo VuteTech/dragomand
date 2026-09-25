@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+# SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
 # Periodic model update check. The daemon is not always running, so the
 # check comes from this timer-activated oneshot, not an in-daemon timer.
 [Unit]

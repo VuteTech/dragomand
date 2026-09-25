@@ -134,6 +134,10 @@ between two non-English languages works through English when both are
 installed. Packaged models live in the read-only system store
 `/usr/share/dragomand/models` and update with your system.
 
+To install every language at once, install `dragomand-models-all`, a
+meta package that depends on all of them (roughly 3 GB), with the same
+package manager command as above.
+
 To try the first translation, see the [Quick start](quickstart.md).
 
 On Debian and Ubuntu the BLAS implementation is chosen through the

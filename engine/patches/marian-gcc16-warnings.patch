@@ -1,3 +1,7 @@
+SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+SPDX-License-Identifier: MIT
+
 dragomand: GCC >= 15 reports array-bounds false positives when inlining
 std::shared_ptr assignment (a long-standing GCC issue, e.g. GCC PR 101204
 family), which marian's -Werror turns fatal. Demote it to a plain warning,

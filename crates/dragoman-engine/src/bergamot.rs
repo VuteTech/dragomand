@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+// SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 //! Safe wrapper over the Bergamot C ABI (`engine/adapter/dragoman_engine.h`).
