@@ -12,7 +12,8 @@ ExecStart=/usr/lib/dragomand/dragomand
 MemoryPressureWatch=on
 
 # Sandboxing. Every option below was verified to work in a user unit with
-# the real engine translating; user-unit namespacing
+# the real engine translating, on Arch-based systems and on Ubuntu 26.04
+# with AppArmor restricting user namespaces; user-unit namespacing
 # requires PrivateUsers=yes, which must stay first in spirit: without it
 # the Protect*/Private* options fail with status 226/NAMESPACE.
 # "+" runs outside the sandbox: the writable directories must exist
@@ -25,10 +26,7 @@ ProtectHome=read-only
 ReadWritePaths=-%h/.local/share/dragomand -%h/.cache/dragomand
 PrivateTmp=yes
 ProtectKernelTunables=yes
-ProtectKernelModules=yes
-ProtectKernelLogs=yes
 ProtectControlGroups=yes
-ProtectClock=yes
 ProtectHostname=yes
 RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 RestrictNamespaces=yes
