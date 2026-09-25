@@ -28,5 +28,6 @@ text="$("${read_cmd[@]}")"
 [ -n "$text" ] || exit 0
 translated="$(printf '%s\n' "$text" | dragomanctl translate -f "$src" -t "$trg")"
 printf '%s' "$translated" | "${write_cmd[@]}"
-command -v notify-send >/dev/null &&
-    notify-send --app-name=Dragomand "clipboard → $trg" "$translated" || true
+if command -v notify-send >/dev/null; then
+    notify-send --app-name=Dragomand "Clipboard translated to $trg" "$translated" || true
+fi

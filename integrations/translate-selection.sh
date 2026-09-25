@@ -25,7 +25,7 @@ fi
 translated="$(printf '%s\n' "$text" | dragomanctl translate -f "$src" -t "$trg")"
 
 if command -v notify-send >/dev/null; then
-    notify-send --app-name=Dragomand "→ $trg" "$translated"
+    notify-send --app-name=Dragomand "Translated to $trg" "$translated"
 else
     printf '%s\n' "$translated"
 fi
