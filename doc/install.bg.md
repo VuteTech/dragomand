@@ -172,9 +172,11 @@ DRAGOMAN_ENGINE_LIB_DIR=$PWD/engine/build cargo build --release --workspace
 Rust 1.85 или по-нов. Бележките за пакетиращите са в `docs/packaging.md`
 в хранилището.
 
-За да изградите пакета за Arch от копие на хранилището вместо от
-хранилището за пакети: `scripts/make-release-tarball.sh packaging/obs/`,
-после `makepkg -si` в `packaging/obs/`.
+Обикновеното `cargo build` отчита версия за разработка `0.0.0-dev`;
+версиите на изданията идват от етикета в git и се вписват в архива на
+изданието. За да изградите пакета за Arch от копие на хранилището вместо
+от хранилището за пакети, вижте коментара в началото на
+`packaging/obs/PKGBUILD`.
 
 ## Поведение офлайн
 

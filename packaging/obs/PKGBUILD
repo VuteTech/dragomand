@@ -1,14 +1,14 @@
 # Maintainer: Blagovest Petrov <blagovest@petrovs.info>
 #
-# Builds from a local release tarball:
-#   scripts/make-release-tarball.sh packaging/obs/
-#   cd packaging/obs && makepkg
-# The release workflow also publishes this file to OBS (with pkgver
-# stamped from the tag) next to the vendored tarball, whose
-# .cargo/config.toml keeps cargo offline.
+# @VERSION@ is stamped by packaging/obs/prepare.sh from the release tag;
+# the release workflow publishes the result to OBS next to the vendored
+# tarball, whose .cargo/config.toml keeps cargo offline. To build locally:
+#   scripts/make-release-tarball.sh --vendor --version 1.2.3 /tmp/rel
+#   packaging/obs/prepare.sh 1.2.3 /tmp/rel/dragomand-1.2.3.tar.gz /tmp/pkg
+#   cd /tmp/pkg && makepkg -si
 
 pkgname=dragomand
-pkgver=0.1.0
+pkgver=@VERSION@
 pkgrel=1
 pkgdesc="Offline machine translation daemon for the desktop (D-Bus, Mozilla Bergamot models)"
 arch=(x86_64 aarch64)

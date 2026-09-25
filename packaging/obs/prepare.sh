@@ -56,11 +56,10 @@ stamp "$here/dragomand.dsc" "$out/dragomand.dsc"
 stamp "$here/debian.control" "$out/debian.control"
 stamp "$here/debian.rules" "$out/debian.rules"
 stamp "$here/debian.changelog" "$out/debian.changelog"
-sed -e "s/^pkgver=.*/pkgver=$version/" -e "s/^pkgrel=.*/pkgrel=1/" \
-    "$here/PKGBUILD" >"$out/PKGBUILD"
+stamp "$here/PKGBUILD" "$out/PKGBUILD"
 cp "$tarball" "$out/"
 
-if grep -l '@[A-Z_]*@' "$out"/dragomand.spec "$out"/dragomand.dsc "$out"/debian.*; then
+if grep -l '@[A-Z_]*@' "$out"/dragomand.spec "$out"/dragomand.dsc "$out"/debian.* "$out"/PKGBUILD; then
     echo "unstamped placeholders left in the files above" >&2
     exit 1
 fi

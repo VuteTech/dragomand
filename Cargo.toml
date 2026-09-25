@@ -11,7 +11,9 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+# Development placeholder. Releases take their version from the git tag
+# (vX.Y.Z): scripts/set-version.sh stamps it into the release tarball.
+version = "0.0.0-dev"
 edition = "2024"
 license = "GPL-3.0-or-later"
 repository = "https://github.com/VuteTech/dragomand"

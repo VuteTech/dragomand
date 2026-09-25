@@ -199,9 +199,11 @@ Notes:
   configure step.
 - `cargo test --workspace` runs the test suite; the daemon tests need
   `dbus-daemon` installed and run on a private bus.
+- A plain `cargo build` reports the development version `0.0.0-dev`;
+  release versions come from the git tag and are stamped into the release
+  tarball.
 - To build the Arch package from a checkout instead of using the
-  repository: `scripts/make-release-tarball.sh packaging/obs/`, then
-  `makepkg -si` in `packaging/obs/`.
+  repository, see the comment at the top of `packaging/obs/PKGBUILD`.
 
 ## Models for offline machines
 

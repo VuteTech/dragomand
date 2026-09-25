@@ -301,7 +301,7 @@ dependencies = [
 
 [[package]]
 name = "dragoman-client"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "futures-util",
  "zbus",
@@ -309,7 +309,7 @@ dependencies = [
 
 [[package]]
 name = "dragoman-engine"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "cmake",
  "thiserror",
@@ -318,7 +318,7 @@ dependencies = [
 
 [[package]]
 name = "dragoman-krunner"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "dragoman-client",
  "dragoman-engine",
@@ -332,7 +332,7 @@ dependencies = [
 
 [[package]]
 name = "dragoman-models"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "dragoman-engine",
  "reqwest",
@@ -348,7 +348,7 @@ dependencies = [
 
 [[package]]
 name = "dragoman-search-provider"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "dragoman-client",
  "dragoman-engine",
@@ -362,7 +362,7 @@ dependencies = [
 
 [[package]]
 name = "dragomanctl"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "clap",
  "clap_complete",
@@ -380,7 +380,7 @@ dependencies = [
 
 [[package]]
 name = "dragomand"
-version = "0.1.0"
+version = "0.0.0-dev"
 dependencies = [
  "dragoman-client",
  "dragoman-engine",

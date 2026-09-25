@@ -2,8 +2,9 @@
 # This is the only workflow that talks to OBS; pushes and pull requests
 # run ci.yml alone.
 #
-# The release tag must be vX.Y.Z and match the workspace version in
-# Cargo.toml. The job builds the vendored source tarball (every crate
+# The release tag must be vX.Y.Z and is the only place the version lives:
+# Cargo.toml carries a development placeholder, and the tarball gets the
+# tag's version stamped in (scripts/set-version.sh). The job builds the vendored source tarball (every crate
 # included, so build farms need no network), attaches it to the GitHub
 # release, commits it with one build recipe per package format to the OBS
 # package, refreshes the per-language model packages whose models changed,
@@ -67,18 +68,10 @@ jobs:
         with:
           ref: ${{ steps.tag.outputs.tag }}
 
-      - name: Check the tag against Cargo.toml
+      - name: Build the vendored source tarball
         env:
           VERSION: ${{ steps.tag.outputs.version }}
-        run: |
-          cargo_version="$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -1)"
-          if [ "$cargo_version" != "$VERSION" ]; then
-            echo "::error::tag says $VERSION but Cargo.toml says $cargo_version"
-            exit 1
-          fi
-
-      - name: Build the vendored source tarball
-        run: scripts/make-release-tarball.sh --vendor dist
+        run: scripts/make-release-tarball.sh --vendor --version "$VERSION" dist
 
       - name: Assemble the OBS package
         env:
