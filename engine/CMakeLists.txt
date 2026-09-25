@@ -51,6 +51,22 @@ set(SPM_ENABLE_TCMALLOC OFF CACHE BOOL "" FORCE)
 
 add_subdirectory(vendor)
 
+# On ARM, marian compiles its own sources with directory-level definitions
+# (ARM, FMA, SSE, USE_RUY_SGEMM, ...) and options (-flax-vector-conversions)
+# that select the NEON code in the headers it shares with bergamot. The
+# bergamot sources and our adapter include those headers from outside
+# marian's directory, so they would see the x86 half of simd_utils and fail
+# (missing <fenv.h>, sin_ps). Give them marian's settings; PUBLIC carries
+# them on to the adapter. x86-64 builds need none of this and are left as
+# they are.
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64|arm.*)$")
+  get_directory_property(_dg_marian_defs DIRECTORY vendor/marian-fork COMPILE_DEFINITIONS)
+  get_directory_property(_dg_marian_opts DIRECTORY vendor/marian-fork COMPILE_OPTIONS)
+  message(STATUS "ARM: applying marian's definitions to bergamot and the adapter: ${_dg_marian_defs}")
+  target_compile_definitions(bergamot-translator-source PUBLIC ${_dg_marian_defs})
+  target_compile_options(bergamot-translator-source PUBLIC ${_dg_marian_opts})
+endif()
+
 if(USE_MKL)
   message(FATAL_ERROR "USE_MKL must stay OFF: MKL is proprietary and GPL-incompatible.")
 endif()

@@ -20,9 +20,9 @@ env:
 jobs:
   fmt:
     name: rustfmt
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
       - uses: dtolnay/rust-toolchain@stable
@@ -30,12 +30,41 @@ jobs:
           components: rustfmt
       - run: cargo fmt --all --check
 
+  # The release scripts only run on a release, so check them on every
+  # push: a script committed without its execute bit, or one that
+  # shellcheck rejects, would otherwise fail only when publishing.
+  scripts:
+    name: scripts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.ref }}
+      - name: Scripts are executable
+        run: |
+          # Every tracked file with a #! line must be committed as 100755
+          # (engine/vendor/ is third-party and left alone).
+          bad=0
+          while IFS= read -r file; do
+            mode="$(git ls-files -s -- "$file" | cut -d' ' -f1)"
+            if [ "$mode" != 100755 ]; then
+              echo "::error file=$file::has a #! line but is committed as $mode, not 100755"
+              bad=1
+            fi
+          done < <(git ls-files -- ':!engine/vendor' | while IFS= read -r f; do
+            [ -f "$f" ] && head -c2 "$f" | grep -q '^#!' && echo "$f"
+          done)
+          exit "$bad"
+      - name: shellcheck
+        run: |
+          git ls-files -z -- '*.sh' ':!engine/vendor' | xargs -0 shellcheck
+
   # Pure-Rust signal, fast: no C++ engine (--no-default-features).
   clippy:
     name: clippy
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
       - uses: dtolnay/rust-toolchain@stable
@@ -46,9 +75,9 @@ jobs:
 
   test:
     name: test (fake backend)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
       - uses: dtolnay/rust-toolchain@stable
@@ -60,31 +89,41 @@ jobs:
   # nor a dependency that needs a newer compiler than it declares.
   msrv:
     name: test (MSRV 1.85)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
       - uses: dtolnay/rust-toolchain@1.85
       - uses: Swatinem/rust-cache@v2
       - run: cargo test --locked --workspace --no-default-features
 
-  # Full build with the C++ engine; slow on a cold ccache.
+  # Full build with the C++ engine; slow on a cold ccache. Both package
+  # architectures: ARM64 compiles different engine code (ruy, NEON) that
+  # x86-64 never touches.
   engine:
-    name: engine + full tests
-    runs-on: ubuntu-latest
+    name: engine + full tests (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86-64
+            runner: ubuntu-24.04
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      - uses: hendrikmuhs/ccache-action@v1
+      - uses: hendrikmuhs/ccache-action@v1.2.24
         with:
-          key: engine
+          key: engine-${{ matrix.arch }}
       - name: Install engine dependencies
         run: |
           sudo apt-get update
@@ -103,9 +142,9 @@ jobs:
 
   deny:
     name: cargo deny
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref }}
       - uses: EmbarkStudios/cargo-deny-action@v2
