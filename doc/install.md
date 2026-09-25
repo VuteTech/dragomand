@@ -27,6 +27,7 @@ openSUSE Leap 16.0 also get 64-bit ARM packages.
     sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Tumbleweed/home:blago:dragomand.repo
     sudo zypper refresh
     sudo zypper install dragomand
+    sudo zypper install dragomand-model-bg   # optional: Bulgarian models, see below
     ```
 
     `zypper refresh` asks whether to trust the repository key; answer
@@ -38,6 +39,7 @@ openSUSE Leap 16.0 also get 64-bit ARM packages.
     sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Slowroll/home:blago:dragomand.repo
     sudo zypper refresh
     sudo zypper install dragomand
+    sudo zypper install dragomand-model-bg   # optional: Bulgarian models, see below
     ```
 
     `zypper refresh` asks whether to trust the repository key; answer
@@ -49,6 +51,7 @@ openSUSE Leap 16.0 also get 64-bit ARM packages.
     sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/16.0/home:blago:dragomand.repo
     sudo zypper refresh
     sudo zypper install dragomand
+    sudo zypper install dragomand-model-bg   # optional: Bulgarian models, see below
     ```
 
     `zypper refresh` asks whether to trust the repository key; answer
@@ -59,6 +62,7 @@ openSUSE Leap 16.0 also get 64-bit ARM packages.
     ```sh
     sudo dnf config-manager addrepo --from-repofile=https://download.opensuse.org/repositories/home:/blago:/dragomand/Fedora_44/home:blago:dragomand.repo
     sudo dnf install dragomand
+    sudo dnf install dragomand-model-bg      # optional: Bulgarian models, see below
     ```
 
     `dnf` shows the repository key's fingerprint on first use and asks
@@ -77,6 +81,7 @@ openSUSE Leap 16.0 also get 64-bit ARM packages.
       | sudo tee /etc/apt/sources.list.d/dragomand.list
     sudo apt update
     sudo apt install dragomand
+    sudo apt install dragomand-model-bg      # optional: Bulgarian models, see below
     ```
 
     On Debian testing or unstable, replace `Debian_13` in both URLs with
@@ -93,6 +98,7 @@ openSUSE Leap 16.0 also get 64-bit ARM packages.
       | sudo tee /etc/apt/sources.list.d/dragomand.list
     sudo apt update
     sudo apt install dragomand
+    sudo apt install dragomand-model-bg      # optional: Bulgarian models, see below
     ```
 
 === "Arch Linux"
@@ -110,9 +116,23 @@ openSUSE Leap 16.0 also get 64-bit ARM packages.
     printf '\n[home_blago_dragomand_Arch]\nServer = https://download.opensuse.org/repositories/home:/blago:/dragomand/Arch/$arch\n' \
       | sudo tee -a /etc/pacman.conf
     sudo pacman -Syu dragomand
+    sudo pacman -S dragomand-model-bg        # optional: Bulgarian models, see below
     ```
 
     The `$arch` in the `Server` line is literal: pacman fills it in.
+
+### Language models
+
+The `dragomand` package holds no models: by default each language pair
+downloads from Mozilla the first time you use it, into your home
+directory. For machines without network access, or to skip that first
+download, install model packages instead. There is one per language,
+named `dragomand-model-` plus the language code, holding every direction
+between that language and English: `dragomand-model-bg`,
+`dragomand-model-de`, `dragomand-model-zh-hans` and so on. Translating
+between two non-English languages works through English when both are
+installed. Packaged models live in the read-only system store
+`/usr/share/dragomand/models` and update with your system.
 
 To try the first translation, see the [Quick start](quickstart.md).
 

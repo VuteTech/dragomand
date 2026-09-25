@@ -21,6 +21,7 @@ openSUSE Leap 16.0 има и пакети за 64-битов ARM.
     sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Tumbleweed/home:blago:dragomand.repo
     sudo zypper refresh
     sudo zypper install dragomand
+    sudo zypper install dragomand-model-bg   # по избор: модели за български, вижте по-долу
     ```
 
     `zypper refresh` пита дали да се довери на ключа на хранилището;
@@ -32,6 +33,7 @@ openSUSE Leap 16.0 има и пакети за 64-битов ARM.
     sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/openSUSE_Slowroll/home:blago:dragomand.repo
     sudo zypper refresh
     sudo zypper install dragomand
+    sudo zypper install dragomand-model-bg   # по избор: модели за български, вижте по-долу
     ```
 
     `zypper refresh` пита дали да се довери на ключа на хранилището;
@@ -43,6 +45,7 @@ openSUSE Leap 16.0 има и пакети за 64-битов ARM.
     sudo zypper addrepo https://download.opensuse.org/repositories/home:/blago:/dragomand/16.0/home:blago:dragomand.repo
     sudo zypper refresh
     sudo zypper install dragomand
+    sudo zypper install dragomand-model-bg   # по избор: модели за български, вижте по-долу
     ```
 
     `zypper refresh` пита дали да се довери на ключа на хранилището;
@@ -53,6 +56,7 @@ openSUSE Leap 16.0 има и пакети за 64-битов ARM.
     ```sh
     sudo dnf config-manager addrepo --from-repofile=https://download.opensuse.org/repositories/home:/blago:/dragomand/Fedora_44/home:blago:dragomand.repo
     sudo dnf install dragomand
+    sudo dnf install dragomand-model-bg      # по избор: модели за български, вижте по-долу
     ```
 
     При първа употреба `dnf` показва отпечатъка на ключа на хранилището
@@ -71,6 +75,7 @@ openSUSE Leap 16.0 има и пакети за 64-битов ARM.
       | sudo tee /etc/apt/sources.list.d/dragomand.list
     sudo apt update
     sudo apt install dragomand
+    sudo apt install dragomand-model-bg      # по избор: модели за български, вижте по-долу
     ```
 
     За Debian testing или unstable заменете `Debian_13` и в двата адреса
@@ -87,6 +92,7 @@ openSUSE Leap 16.0 има и пакети за 64-битов ARM.
       | sudo tee /etc/apt/sources.list.d/dragomand.list
     sudo apt update
     sudo apt install dragomand
+    sudo apt install dragomand-model-bg      # по избор: модели за български, вижте по-долу
     ```
 
 === "Arch Linux"
@@ -104,9 +110,23 @@ openSUSE Leap 16.0 има и пакети за 64-битов ARM.
     printf '\n[home_blago_dragomand_Arch]\nServer = https://download.opensuse.org/repositories/home:/blago:/dragomand/Arch/$arch\n' \
       | sudo tee -a /etc/pacman.conf
     sudo pacman -Syu dragomand
+    sudo pacman -S dragomand-model-bg        # по избор: модели за български, вижте по-долу
     ```
 
     `$arch` в реда `Server` се пише буквално: pacman го попълва сам.
+
+### Езикови модели
+
+Пакетът `dragomand` не съдържа модели: по подразбиране всяка езикова
+двойка се изтегля от Mozilla при първата ѝ употреба, в домашната ви
+папка. За компютри без мрежа или за да избегнете първото изтегляне,
+инсталирайте пакети с модели. Има по един за всеки език, с име
+`dragomand-model-` плюс кода на езика, съдържащ всички посоки между
+този език и английския: `dragomand-model-bg`, `dragomand-model-de`,
+`dragomand-model-zh-hans` и т.н. Преводът между два неанглийски езика
+минава през английския, когато и двата са инсталирани. Пакетираните
+модели са в системното хранилище само за четене
+`/usr/share/dragomand/models` и се обновяват заедно със системата.
 
 Пакетът инсталира активирания през D-Bus демон, конзолния клиент
 `dragomanctl` със завършване за обвивките и страница на ръководството,

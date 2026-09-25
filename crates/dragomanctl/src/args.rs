@@ -100,6 +100,9 @@ pub enum StoreCommand {
         /// Pairs to verify; everything when empty.
         pairs: Vec<String>,
     },
+    /// List the pairs the provider offers and the version each would
+    /// install. Contacts the provider, not the daemon.
+    Available,
     /// Download and install pairs into a store directory (defaults to the
     /// user store). --root fills a system store for model packages.
     Install {
@@ -116,12 +119,66 @@ pub enum StoreCommand {
     },
 }
 
-/// Splits "bg-en" into ("bg", "en").
+/// Splits "bg-en" into ("bg", "en"). Language codes may carry a script or
+/// region subtag, as in "zh-Hans-en": a four-letter script ("Hans") or a
+/// two-letter uppercase or three-digit region ("BR", "419") belongs to the
+/// code before it. Scripts are normalized to title case, so "zh-hans-en"
+/// works too.
 pub fn parse_pair(pair: &str) -> Result<(String, String), String> {
-    match pair.split_once('-') {
-        Some((source, target)) if !source.is_empty() && !target.is_empty() => {
-            Ok((source.to_owned(), target.to_owned()))
+    let bad = || format!("bad pair {pair:?}: expected SRC-TRG, e.g. bg-en or zh-Hans-en");
+    let mut codes: Vec<String> = Vec::new();
+    for part in pair.split('-') {
+        if part.is_empty() {
+            return Err(bad());
         }
-        _ => Err(format!("bad pair {pair:?}: expected SRC-TRG, e.g. bg-en")),
+        let is_script = part.len() == 4 && part.chars().all(|c| c.is_ascii_alphabetic());
+        let is_region = (part.len() == 2 && part.chars().all(|c| c.is_ascii_uppercase()))
+            || (part.len() == 3 && part.chars().all(|c| c.is_ascii_digit()));
+        match codes.last_mut() {
+            Some(code) if is_script => {
+                let (first, rest) = part.split_at(1);
+                code.push('-');
+                code.push_str(&first.to_ascii_uppercase());
+                code.push_str(&rest.to_ascii_lowercase());
+            }
+            Some(code) if is_region => {
+                code.push('-');
+                code.push_str(part);
+            }
+            _ => codes.push(part.to_owned()),
+        }
+    }
+    match <[String; 2]>::try_from(codes) {
+        Ok([source, target]) => Ok((source, target)),
+        Err(_) => Err(bad()),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_pair;
+
+    fn ok(pair: &str) -> (String, String) {
+        parse_pair(pair).unwrap()
+    }
+
+    #[test]
+    fn plain_pairs() {
+        assert_eq!(ok("bg-en"), ("bg".into(), "en".into()));
+    }
+
+    #[test]
+    fn script_and_region_subtags_stay_with_their_code() {
+        assert_eq!(ok("zh-Hans-en"), ("zh-Hans".into(), "en".into()));
+        assert_eq!(ok("en-zh-Hant"), ("en".into(), "zh-Hant".into()));
+        assert_eq!(ok("zh-hans-en"), ("zh-Hans".into(), "en".into()));
+        assert_eq!(ok("pt-BR-en"), ("pt-BR".into(), "en".into()));
+    }
+
+    #[test]
+    fn malformed_pairs_are_rejected() {
+        for pair in ["bg", "bg-", "-en", "bg--en", "bg-en-de", ""] {
+            assert!(parse_pair(pair).is_err(), "{pair:?} should be rejected");
+        }
     }
 }

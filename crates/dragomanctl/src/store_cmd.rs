@@ -95,6 +95,43 @@ pub fn verify(pairs: &[String], json: bool) -> Result<(), Fail> {
     }
 }
 
+pub async fn available(json: bool) -> Result<(), Fail> {
+    let provider =
+        RemoteSettingsProvider::new(ReqwestHttp::new(), RemoteSettingsConfig::from_env());
+    let available = provider.available().await.map_err(|e| e.to_string())?;
+    for filter in &available.skipped_filters {
+        eprintln!("warning: skipped records with an unknown filter: {filter}");
+    }
+    let mut sets = available.sets;
+    sets.sort_by_key(|set| set.pair());
+    if json {
+        let rows: Vec<_> = sets
+            .iter()
+            .map(|set| {
+                serde_json::json!({
+                    "source": set.source,
+                    "target": set.target,
+                    "variant": set.variant,
+                    "version": set.version.as_str(),
+                    "architecture": set.architecture,
+                    "last_modified": set.files.values().filter_map(|r| r.last_modified).max(),
+                })
+            })
+            .collect();
+        println!("{}", serde_json::Value::Array(rows));
+    } else {
+        for set in &sets {
+            println!(
+                "{:<12} {:<8} {}",
+                set.pair(),
+                set.version.as_str(),
+                set.architecture.as_deref().unwrap_or("-")
+            );
+        }
+    }
+    Ok(())
+}
+
 pub async fn install(
     root: Option<PathBuf>,
     pairs: &[(String, String)],

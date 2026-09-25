@@ -64,6 +64,7 @@ async fn run(cli: Cli) -> Result<(), String> {
         Command::Status => bus::status(json).await,
         Command::Store(store) => match store {
             StoreCommand::List => store_cmd::list(json),
+            StoreCommand::Available => store_cmd::available(json).await,
             StoreCommand::Verify { pairs } => store_cmd::verify(&pairs, json),
             StoreCommand::Install { root, pairs } => {
                 store_cmd::install(root, &parse_pairs(&pairs)?, json).await

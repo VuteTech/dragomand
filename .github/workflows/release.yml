@@ -6,7 +6,8 @@
 # Cargo.toml. The job builds the vendored source tarball (every crate
 # included, so build farms need no network), attaches it to the GitHub
 # release, commits it with one build recipe per package format to the OBS
-# package, and waits for OBS to build it for every repository and
+# package, refreshes the per-language model packages whose models changed,
+# and waits for OBS to build every package for every repository and
 # architecture configured in the project. OBS publishes the results to
 # its download repositories itself.
 #
@@ -98,27 +99,12 @@ jobs:
           gh release upload "$TAG" "dragomand-$VERSION.tar.gz" \
             "dragomand-$VERSION.tar.gz.sha256" --clobber
 
-      - name: Install and configure osc
-        env:
-          OBS_USER: ${{ secrets.OBS_USER }}
-          OBS_PASSWORD: ${{ secrets.OBS_PASSWORD }}
-        run: |
-          if [ -z "$OBS_USER" ] || [ -z "$OBS_PASSWORD" ]; then
-            echo "::error::the OBS_USER and OBS_PASSWORD secrets are not set"
-            exit 1
-          fi
-          pipx install osc
-          umask 077
-          mkdir -p ~/.config/osc
-          cat > ~/.config/osc/oscrc <<EOF
-          [general]
-          apiurl = $OBS_API
-
-          [$OBS_API]
-          user = $OBS_USER
-          pass = $OBS_PASSWORD
-          credentials_mgr_class = osc.credentials.PlaintextConfigFileCredentialsManager
-          EOF
+      - name: Set up osc
+        uses: ./.github/actions/setup-osc
+        with:
+          apiurl: ${{ env.OBS_API }}
+          user: ${{ secrets.OBS_USER }}
+          password: ${{ secrets.OBS_PASSWORD }}
 
       - name: Commit to OBS
         env:
@@ -142,30 +128,80 @@ jobs:
           osc addremove
           osc commit -m "Release $TAG"
 
+  # One package per language with every model Mozilla publishes. Only
+  # packages whose models changed since the last release are uploaded.
+  obs-models:
+    needs: ci
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+
+      # The store commands need no engine, so skip the C++ build.
+      - name: Build dragomanctl
+        run: cargo build --release --locked -p dragomanctl --no-default-features
+
+      - name: Set up osc
+        uses: ./.github/actions/setup-osc
+        with:
+          apiurl: ${{ env.OBS_API }}
+          user: ${{ secrets.OBS_USER }}
+          password: ${{ secrets.OBS_PASSWORD }}
+
+      - name: Publish the model packages
+        run: |
+          SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
+          export SOURCE_DATE_EPOCH
+          packaging/obs/models/publish.sh target/release/dragomanctl
+
+  # Waits for the whole project, the daemon and the model packages alike.
+  # It runs whenever CI passed, so a failed model upload does not hide the
+  # daemon's build results; the run still fails through that job.
+  obs-wait:
+    needs: [ci, obs, obs-models]
+    if: ${{ !cancelled() && needs.ci.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+      - name: Check out the tag
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name || inputs.tag }}
+
+      - name: Set up osc
+        uses: ./.github/actions/setup-osc
+        with:
+          apiurl: ${{ env.OBS_API }}
+          user: ${{ secrets.OBS_USER }}
+          password: ${{ secrets.OBS_PASSWORD }}
+
       - name: Wait for the OBS builds
         run: |
-          # Poll instead of `osc results --watch`, which can keep waiting
-          # after every build has finished. Done means each repository and
-          # architecture has a final status and no pending rescheduling
-          # (CSV columns: repository, arch, package, repository state,
-          # dirty, status, details).
+          # Poll the whole project instead of `osc results --watch`, which
+          # can keep waiting after every build has finished. results.py
+          # exits 2 while anything is pending, then 1 if a build failed.
           deadline=$((SECONDS + 4 * 3600))
           while :; do
             # Give the scheduler a moment to notice the new sources.
             sleep 60
-            csv="$(osc results --csv "$OBS_PROJECT" "$OBS_PACKAGE")" || continue
-            pending="$(awk -F'","' '$5 != "False" ||
-                $6 !~ /^(succeeded|failed|unresolvable|broken|excluded|disabled|locked)$/' <<<"$csv")"
-            [ -z "$pending" ] && break
+            xml="$(osc api "/build/$OBS_PROJECT/_result")" || continue
+            status=0
+            summary="$(packaging/obs/results.py <<<"$xml")" || status=$?
+            [ "$status" -ne 2 ] && break
             if [ "$SECONDS" -ge "$deadline" ]; then
               echo "::error::OBS builds still pending after 4 hours:"
-              echo "$pending"
+              echo "$summary"
               exit 1
             fi
           done
-          osc results "$OBS_PROJECT" "$OBS_PACKAGE"
-          if osc results --csv "$OBS_PROJECT" "$OBS_PACKAGE" |
-              grep -E '(failed|unresolvable|broken)'; then
-            echo "::error::some OBS builds did not succeed; see https://build.opensuse.org/package/show/$OBS_PROJECT/$OBS_PACKAGE"
+          echo "$summary"
+          if [ "$status" -ne 0 ]; then
+            echo "::error::some OBS builds did not succeed; see https://build.opensuse.org/project/monitor/$OBS_PROJECT"
             exit 1
           fi

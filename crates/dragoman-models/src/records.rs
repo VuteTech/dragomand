@@ -41,6 +41,10 @@ pub struct ModelRecord {
     pub decompressed_hash: String,
     #[serde(rename = "decompressedSize")]
     pub decompressed_size: u64,
+    /// Remote Settings modification time, in milliseconds since the epoch.
+    /// Model packages derive a version from it that rises with any change.
+    #[serde(default)]
+    pub last_modified: Option<u64>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Deserialize)]

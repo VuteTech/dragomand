@@ -22,8 +22,9 @@ dragomanctl [--json] <command> [options]
 | 1 | Runtime failure: daemon error, verification failure, network trouble. |
 | 2 | Usage error. |
 
-Languages are BCP-47 codes (`bg`, `en`, `de`). Pairs are written
-`SRC-TRG`, for example `bg-en`.
+Languages are BCP-47 codes (`bg`, `en`, `de`, `zh-Hans`). Pairs are
+written `SRC-TRG`, for example `bg-en`; a script or region subtag stays
+with its language, so `zh-Hans-en` is Simplified Chinese to English.
 
 ---
 
@@ -126,6 +127,18 @@ dragomanctl store verify [PAIR...]
 Re-verifies installed models (file sizes and sha256 checksums) against
 their manifests. Verifies everything when no pairs are given. Exits 1
 when anything fails.
+
+### store available
+
+```
+dragomanctl store available
+```
+
+Lists every pair the model provider offers, with the version and
+architecture that `store install` would fetch. It contacts the provider
+(Mozilla's Remote Settings) but not the daemon; with `--json` each entry
+also carries the date of its newest record, which the model packages use
+for their version.
 
 ### store install
 
