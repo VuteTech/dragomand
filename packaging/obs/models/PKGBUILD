@@ -1,0 +1,28 @@
+# Maintainer: Blagovest Petrov <blagovest@petrovs.info>
+#
+# A dragomand model package: every direction between @LANGUAGE@ and
+# English. packaging/obs/models/prepare.sh stamps the placeholders; the
+# source tarball already holds a verified system store written by
+# `dragomanctl store install --root`, so the build needs no network.
+
+pkgname=@NAME@
+pkgver=@VERSION@
+pkgrel=1
+pkgdesc="@LANGUAGE@ translation models for dragomand (@PAIRS@)"
+arch=(any)
+url="https://dragomand.l10n-bg.dev"
+license=(MPL-2.0)
+source=("$pkgname-$pkgver.tar.gz")
+sha256sums=('SKIP')
+
+package() {
+  # Declared here rather than globally: makepkg installs global depends
+  # for the build, and copying files needs no dragomand (whose BLAS
+  # dependency OBS cannot pick a provider for on its own).
+  depends=(dragomand)
+  cd "$pkgname-$pkgver"
+  install -d "$pkgdir/usr/share/dragomand"
+  cp -r models "$pkgdir/usr/share/dragomand/"
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+  install -Dm644 README "$pkgdir/usr/share/doc/$pkgname/README"
+}

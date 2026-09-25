@@ -1,0 +1,41 @@
+# Installs osc and writes its configuration for the OBS API, with the
+# credentials of the account that maintains the project.
+name: Set up osc
+description: Install osc and configure it for the Open Build Service API
+
+inputs:
+  apiurl:
+    description: OBS API URL
+    required: true
+  user:
+    description: OBS user name
+    required: true
+  password:
+    description: OBS password
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        OBS_API: ${{ inputs.apiurl }}
+        OBS_USER: ${{ inputs.user }}
+        OBS_PASSWORD: ${{ inputs.password }}
+      run: |
+        if [ -z "$OBS_USER" ] || [ -z "$OBS_PASSWORD" ]; then
+          echo "::error::the OBS_USER and OBS_PASSWORD secrets are not set"
+          exit 1
+        fi
+        pipx install osc
+        umask 077
+        mkdir -p ~/.config/osc
+        cat > ~/.config/osc/oscrc <<OSCRC
+        [general]
+        apiurl = $OBS_API
+
+        [$OBS_API]
+        user = $OBS_USER
+        pass = $OBS_PASSWORD
+        credentials_mgr_class = osc.credentials.PlaintextConfigFileCredentialsManager
+        OSCRC

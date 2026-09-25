@@ -1,0 +1,18 @@
+Source: @NAME@
+Section: localization
+Priority: optional
+Maintainer: Blagovest Petrov <blagovest@petrovs.info>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.7.0
+Homepage: https://dragomand.l10n-bg.dev
+Vcs-Browser: https://github.com/VuteTech/dragomand
+Vcs-Git: https://github.com/VuteTech/dragomand.git
+Rules-Requires-Root: no
+
+Package: @NAME@
+Architecture: all
+Depends: ${misc:Depends}, dragomand
+Description: @LANGUAGE@ translation models for dragomand
+ Offline machine translation models between @LANGUAGE@ and English
+ (@PAIRS@), from Mozilla's Firefox Translations. They install into
+ dragomand's read-only system store, so translating needs no download.

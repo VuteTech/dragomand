@@ -1,0 +1,16 @@
+#!/usr/bin/make -f
+# SPDX-License-Identifier: GPL-3.0-or-later
+#
+# The source tarball already holds a verified system store written by
+# `dragomanctl store install --root`; the build only copies it into place.
+
+DESTDIR = $(CURDIR)/debian/@NAME@
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	install -d $(DESTDIR)/usr/share/dragomand
+	cp -r models $(DESTDIR)/usr/share/dragomand/
+	install -Dm644 LICENSE $(DESTDIR)/usr/share/doc/@NAME@/LICENSE
+	install -Dm644 README $(DESTDIR)/usr/share/doc/@NAME@/README
