@@ -32,6 +32,7 @@ nav:
   - Integrations: integrations.md
   - Documentation:
       - Quick start: quickstart.md
+      - LibreOffice extension: libreoffice.md
       - Command line: cli.md
       - Managing models: models.md
       - Configuration: configuration.md
@@ -56,14 +57,23 @@ plugins:
             Integrations: Интеграции
             Documentation: Документация
             Quick start: Бърз старт
+            LibreOffice extension: Разширение за LibreOffice
             Command line: Команден ред
             Managing models: Управление на моделите
             Configuration: Настройка
             D-Bus API: D-Bus API
             Troubleshooting: Отстраняване на проблеми
 
+# Broken links and anchors fail `mkdocs build --strict`.
+validation:
+  links:
+    anchors: warn
+
 markdown_extensions:
   - admonition
+  # {#id} after a heading: stable anchors for the Bulgarian pages, whose
+  # Cyrillic headings would otherwise get numbered ids (_1, _2, ...).
+  - attr_list
   - def_list
   - tables
   # superfences instead of fenced_code: code blocks also work nested

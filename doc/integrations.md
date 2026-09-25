@@ -58,41 +58,15 @@ queries that do not start with `tr ` never reach it.
 
 ## LibreOffice
 
-The extension (`.oxt`) is developed as its own project,
-`dragoman-libreoffice`. From a checkout of it, build and install with:
+The LibreOffice extension translates the selection in Writer: a
+Translate submenu in the Tools menu and a toolbar, a language chooser,
+links and formatting kept through the translation, and a direction that
+follows the language Writer has set on the text. It is its own project,
+[dragoman-libreoffice](https://github.com/VuteTech/dragoman-libreoffice),
+distributed as an `.oxt` file on its GitHub releases.
 
-```sh
-./build-oxt.sh
-unopkg add dist/dragoman-libreoffice.oxt
-```
-
-or add the file through the Extension Manager in the Tools menu.
-
-What you get:
-
-- A **Translate** submenu in the Tools menu and a **Translate toolbar**
-  (enable it under View, Toolbars, Translate): translate the selection,
-  choose languages, swap direction.
-- In the Tabbed ("ribbon") interface the three commands appear as buttons
-  in the **Extension** tab.
-- A language chooser listing every available language by name, in
-  editable dropdowns, so codes never need typing. The chosen pair is
-  remembered in `~/.config/dragomand/libreoffice.json`.
-- **Rich text support.** Selections with links or character formatting
-  are translated as HTML, so hyperlinks stay attached to the translated
-  words and bold or italic runs survive. Plain selections take a faster
-  path. Input is also normalized and cleaned of invisible artifacts that
-  web copies drag along (soft hyphens, zero-width characters, mixed
-  Cyrillic and Latin lookalike letters) before translating.
-- **Direction that follows the document.** "Translate selection" reads
-  the language Writer has set on the selected text (the one the spelling
-  checker uses, set under Format, Character, Language). Text in the saved
-  source language translates normally, text in the saved target language
-  reverses the direction, any other recognized language translates into
-  the saved target, and text without a language uses the saved pair.
-
-The first use of a pair downloads its model, which can take a few
-seconds; LibreOffice waits meanwhile.
+Requirements, download, installation, updates and troubleshooting are
+on the [LibreOffice extension](libreoffice.md) page.
 
 ## KTextEditor plugin (Kate, KWrite, KDevelop)
 
