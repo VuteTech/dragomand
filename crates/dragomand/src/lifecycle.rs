@@ -36,13 +36,15 @@ impl Activity {
 
 /// Runs the keep-warm policy until the daemon shuts down.
 pub async fn run_sweeper(state: Arc<DaemonState>) {
-    let window = state.config.keep_warm_window();
-    let interval = window
-        .div_f32(4.0)
-        .clamp(Duration::from_millis(250), Duration::from_secs(30));
     loop {
+        // Re-read every round: SetConfig may have changed the policy.
+        let config = state.config();
+        let window = config.keep_warm_window();
+        let interval = window
+            .div_f32(4.0)
+            .clamp(Duration::from_millis(250), Duration::from_secs(30));
         tokio::time::sleep(interval).await;
-        state.workers.sweep(state.config.keep_warm, window).await;
+        state.workers.sweep(config.keep_warm, window).await;
     }
 }
 
@@ -50,11 +52,11 @@ pub async fn run_sweeper(state: Arc<DaemonState>) {
 /// in-flight requests, nothing loaded (the sweeper unloads warm models
 /// first) and no activity for `idle_exit`.
 pub async fn wait_until_idle(state: Arc<DaemonState>) {
-    let idle_exit = state.config.idle_exit();
-    let poll = idle_exit
-        .div_f32(4.0)
-        .clamp(Duration::from_millis(100), Duration::from_secs(10));
     loop {
+        let idle_exit = state.config().idle_exit();
+        let poll = idle_exit
+            .div_f32(4.0)
+            .clamp(Duration::from_millis(100), Duration::from_secs(10));
         tokio::time::sleep(poll).await;
         if state.requests.active_count() == 0
             && state.workers.is_empty().await

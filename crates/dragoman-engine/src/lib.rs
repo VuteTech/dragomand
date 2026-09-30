@@ -19,7 +19,9 @@ mod ffi;
 #[cfg(feature = "bergamot")]
 pub mod bergamot;
 
-pub use backend::{Backend, Error, ModelFiles, Result, TranslateOptions};
+pub use backend::{
+    Backend, Error, ModelFiles, Result, SentencePair, TranslateOptions, Translation,
+};
 pub use worker::{ModelSpec, Worker};
 
 /// The Marian options Firefox passes, minus file paths (those travel in

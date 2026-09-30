@@ -6,6 +6,7 @@
 //! engine, implemented by the real Bergamot engine ([`crate::bergamot`])
 //! and by the fake backend ([`crate::fake`]) used in tests.
 
+use std::ops::Range;
 use std::path::PathBuf;
 
 /// Model files for one translation direction.
@@ -27,6 +28,23 @@ pub struct ModelFiles {
 pub struct TranslateOptions {
     /// The segments are HTML; markup is preserved in the output.
     pub html: bool,
+}
+
+/// One sentence of a segment and its rendering in the translation, as
+/// byte ranges into the source segment and into the translated text.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SentencePair {
+    pub source: Range<usize>,
+    pub target: Range<usize>,
+}
+
+/// The translation of one segment.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Translation {
+    pub text: String,
+    /// Sentence i of the source renders as sentence i of `text`. Empty
+    /// when the backend cannot tell.
+    pub sentences: Vec<SentencePair>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -67,5 +85,5 @@ pub trait Backend: Send + 'static {
         second: Option<&Self::Model>,
         segments: Vec<String>,
         options: TranslateOptions,
-    ) -> Result<Vec<String>>;
+    ) -> Result<Vec<Translation>>;
 }

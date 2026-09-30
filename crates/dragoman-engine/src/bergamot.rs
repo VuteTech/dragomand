@@ -16,7 +16,9 @@ use std::path::Path;
 use std::ptr::{self, NonNull};
 use std::sync::Arc;
 
-use crate::backend::{Backend, Error, ModelFiles, Result, TranslateOptions};
+use crate::backend::{
+    Backend, Error, ModelFiles, Result, SentencePair, TranslateOptions, Translation,
+};
 use crate::ffi;
 
 /// Owns the `dg_engine` and destroys it last: models hold an `Arc` to it, so
@@ -178,7 +180,7 @@ impl Engine {
         second: Option<&Model>,
         segments: &[String],
         options: TranslateOptions,
-    ) -> Result<Vec<String>> {
+    ) -> Result<Vec<Translation>> {
         for model in std::iter::once(first).chain(second) {
             if !Arc::ptr_eq(&model.engine, &self.handle) {
                 return Err(Error::InvalidInput(
@@ -231,14 +233,35 @@ impl Engine {
         let guard = ResultGuard(out);
 
         // SAFETY: `out` is a valid result from the successful call above;
-        // each returned text is valid until dg_result_free.
+        // each returned text is valid until dg_result_free, and the
+        // sentence queries only read within the reported counts.
         let translations = unsafe {
             let n = ffi::dg_result_len(guard.0);
             (0..n)
                 .map(|i| {
                     let text = ffi::dg_result_text(guard.0, i);
                     let bytes = std::slice::from_raw_parts(text.data.cast::<u8>(), text.len);
-                    String::from_utf8_lossy(bytes).into_owned()
+                    let text = String::from_utf8_lossy(bytes).into_owned();
+                    let source_len = segments.get(i).map_or(0, String::len);
+                    let sentences = (0..ffi::dg_result_sentence_count(guard.0, i))
+                        .filter_map(|k| {
+                            let mut source = ffi::dg_range { begin: 0, end: 0 };
+                            let mut target = ffi::dg_range { begin: 0, end: 0 };
+                            (ffi::dg_result_sentence(guard.0, i, k, &mut source, &mut target) == 0)
+                                .then_some(SentencePair {
+                                    source: source.begin..source.end,
+                                    target: target.begin..target.end,
+                                })
+                        })
+                        // Never trust ranges from the other side of an FFI.
+                        .filter(|pair| {
+                            pair.source.start <= pair.source.end
+                                && pair.source.end <= source_len
+                                && pair.target.start <= pair.target.end
+                                && pair.target.end <= text.len()
+                        })
+                        .collect();
+                    Translation { text, sentences }
                 })
                 .collect()
         };
@@ -272,7 +295,7 @@ impl Backend for BergamotBackend {
         second: Option<&Model>,
         segments: Vec<String>,
         options: TranslateOptions,
-    ) -> Result<Vec<String>> {
+    ) -> Result<Vec<Translation>> {
         self.engine
             .translate_batch(first, second, &segments, options)
     }

@@ -134,6 +134,11 @@ async fn session(config: Config, pairs: &[&str]) -> Option<Session> {
         backend: BackendKind::Fake(FakeConfig::default()),
         stores,
         provider,
+        registry: dragoman_models::RegistryConfig {
+            url: "https://dragomand.invalid/models.json".into(),
+            cache_dir: tmp.path().join("registry"),
+        },
+        config_path: None,
         bus_address: Some(bus.address.clone()),
     })
     .await
@@ -294,6 +299,11 @@ async fn idle_exit_after_models_unload() {
         backend: BackendKind::Fake(FakeConfig::default()),
         stores,
         provider,
+        registry: dragoman_models::RegistryConfig {
+            url: "https://dragomand.invalid/models.json".into(),
+            cache_dir: s._tmp.path().join("registry"),
+        },
+        config_path: None,
         bus_address: Some(s._bus.address.clone()),
     })
     .await

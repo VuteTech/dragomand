@@ -98,7 +98,7 @@ struct TestSetup {
     _bus: PrivateBus,
     _daemon: Daemon,
     client: zbus::Connection,
-    _tmp: tempfile::TempDir,
+    tmp: tempfile::TempDir,
 }
 
 async fn setup(pairs: &[&str], fake: FakeConfig) -> Option<TestSetup> {
@@ -115,11 +115,30 @@ async fn setup(pairs: &[&str], fake: FakeConfig) -> Option<TestSetup> {
     provider.server = "https://dragomand.invalid/v1".into();
     provider.cache_dir = tmp.path().join("cache");
 
+    // A cached registry that describes the fake model file.
+    use sha2::Digest;
+    let fake_model_sha = format!("{:x}", sha2::Sha256::digest(b"fake model"));
+    std::fs::create_dir_all(tmp.path().join("registry")).unwrap();
+    std::fs::write(
+        tmp.path().join("registry/models.json"),
+        format!(
+            r#"{{"models": {{"bg-en": [{{"releaseStatus": "Release",
+                "files": {{"model": {{"uncompressedHash": "{fake_model_sha}"}}}},
+                "metrics": {{"flores200-plus": {{"comet22": 0.8719}}}}}}]}}}}"#
+        ),
+    )
+    .unwrap();
+
     let daemon = launch(DaemonOptions {
         config: dragomand::config::Config::default(),
         backend: BackendKind::Fake(fake),
         stores,
         provider,
+        registry: dragoman_models::RegistryConfig {
+            url: "https://dragomand.invalid/models.json".into(),
+            cache_dir: tmp.path().join("registry"),
+        },
+        config_path: Some(tmp.path().join("config/config.toml")),
         bus_address: Some(bus.address.clone()),
     })
     .await
@@ -134,7 +153,7 @@ async fn setup(pairs: &[&str], fake: FakeConfig) -> Option<TestSetup> {
         _bus: bus,
         _daemon: daemon,
         client,
-        _tmp: tmp,
+        tmp,
     })
 }
 
@@ -585,4 +604,314 @@ fn describe(xml: &str, name: &str) -> Vec<String> {
     }
     lines.sort();
     lines
+}
+
+#[tokio::test]
+async fn translate_reports_sentences() {
+    let Some(setup) = setup(&["bg-en"], FakeConfig::default()).await else {
+        return;
+    };
+    let proxy = Translator1Proxy::new(&setup.client).await.unwrap();
+    let outcome = call_with_request(&setup.client, |token| {
+        let proxy = proxy.clone();
+        async move {
+            let mut options = HashMap::new();
+            options.insert("handle_token", Value::from(token));
+            options.insert("sentences", Value::from(true));
+            proxy
+                .translate("bg", "en", vec!["Едно. Две!".into(), "три".into()], options)
+                .await
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(outcome.code, response_code::SUCCESS);
+    let sentences = outcome
+        .results
+        .get(result_key::SENTENCES)
+        .expect("sentences");
+    let sentences =
+        Vec::<Vec<(u32, u32, u32, u32)>>::try_from(sentences.try_clone().unwrap()).unwrap();
+    // "[model.bgen] " is 13 code points; the first sentence covers it.
+    assert_eq!(
+        sentences,
+        vec![vec![(0, 5, 0, 18), (6, 10, 19, 23)], vec![(0, 3, 0, 16)]]
+    );
+
+    // Not asked for: not sent.
+    let outcome = call_with_request(&setup.client, |token| {
+        let proxy = proxy.clone();
+        async move {
+            let mut options = HashMap::new();
+            options.insert("handle_token", Value::from(token));
+            proxy
+                .translate("bg", "en", vec!["Едно.".into()], options)
+                .await
+        }
+    })
+    .await
+    .unwrap();
+    assert!(!outcome.results.contains_key(result_key::SENTENCES));
+}
+
+#[tokio::test]
+async fn translate_fd_translates_documents() {
+    let Some(setup) = setup(&["bg-en"], FakeConfig::default()).await else {
+        return;
+    };
+    let proxy = Translator1Proxy::new(&setup.client).await.unwrap();
+
+    // Blank and letterless lines are copied; 150 lines take several steps.
+    let mut lines = vec!["Първи ред.".to_owned(), String::new(), "  --- ".to_owned()];
+    lines.extend((0..147).map(|i| format!("ред {i}")));
+    let text = lines.join("\n") + "\n";
+    let input_path = setup.tmp.path().join("input.txt");
+    std::fs::write(&input_path, &text).unwrap();
+    let input = std::fs::File::open(&input_path).unwrap();
+    let output_path = setup.tmp.path().join("output.txt");
+    let output = std::fs::File::create(&output_path).unwrap();
+
+    let outcome = call_with_request(&setup.client, |token| {
+        let proxy = proxy.clone();
+        let input = &input;
+        let output = &output;
+        async move {
+            let mut options = HashMap::new();
+            options.insert("handle_token", Value::from(token));
+            proxy
+                .translate_fd(
+                    "bg",
+                    "en",
+                    std::os::fd::AsFd::as_fd(input).into(),
+                    std::os::fd::AsFd::as_fd(output).into(),
+                    options,
+                )
+                .await
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(
+        outcome.code,
+        response_code::SUCCESS,
+        "{:?}",
+        outcome.results
+    );
+    let translated = outcome.results.get(result_key::LINES).unwrap();
+    assert_eq!(u32::try_from(translated.try_clone().unwrap()).unwrap(), 148);
+
+    let written = std::fs::read_to_string(&output_path).unwrap();
+    let written: Vec<&str> = written.split('\n').collect();
+    assert_eq!(written.len(), lines.len() + 1);
+    assert_eq!(written[0], "[model.bgen] Първи ред.");
+    assert_eq!(written[1], "");
+    assert_eq!(written[2], "  --- ");
+    assert_eq!(written[149], "[model.bgen] ред 146");
+    assert_eq!(written[150], "");
+}
+
+#[tokio::test]
+async fn translate_fd_rejects_bad_input() {
+    let Some(setup) = setup(&["bg-en"], FakeConfig::default()).await else {
+        return;
+    };
+    let proxy = Translator1Proxy::new(&setup.client).await.unwrap();
+    let input_path = setup.tmp.path().join("binary.bin");
+    std::fs::write(&input_path, [0xff, 0xfe, 0x00]).unwrap();
+    let input = std::fs::File::open(&input_path).unwrap();
+    let output = std::fs::File::create(setup.tmp.path().join("out.txt")).unwrap();
+    let outcome = call_with_request(&setup.client, |token| {
+        let proxy = proxy.clone();
+        let input = &input;
+        let output = &output;
+        async move {
+            let mut options = HashMap::new();
+            options.insert("handle_token", Value::from(token));
+            proxy
+                .translate_fd(
+                    "bg",
+                    "en",
+                    std::os::fd::AsFd::as_fd(input).into(),
+                    std::os::fd::AsFd::as_fd(output).into(),
+                    options,
+                )
+                .await
+        }
+    })
+    .await
+    .unwrap();
+    assert_eq!(outcome.code, response_code::ERROR);
+    let message = outcome.results.get(result_key::ERROR_MESSAGE).unwrap();
+    assert!(message.downcast_ref::<&str>().unwrap().contains("UTF-8"));
+}
+
+#[tokio::test]
+async fn detect_language_prefers_known_languages() {
+    let Some(setup) = setup(&["bg-en"], FakeConfig::default()).await else {
+        return;
+    };
+    let proxy = Translator1Proxy::new(&setup.client).await.unwrap();
+    let text = "Добро утро, как си днес? Времето е прекрасно.";
+
+    // Without candidates: the languages of installed pairs (bg, en).
+    let results = proxy.detect_language(text, HashMap::new()).await.unwrap();
+    assert_eq!(
+        results
+            .get("language")
+            .unwrap()
+            .downcast_ref::<&str>()
+            .unwrap(),
+        "bg"
+    );
+    let confidence = results
+        .get("confidence")
+        .unwrap()
+        .downcast_ref::<f64>()
+        .unwrap();
+    assert!((0.0..=1.0).contains(&confidence));
+
+    let mut options = HashMap::new();
+    options.insert("candidates", Value::from(vec!["ru", "uk"]));
+    let results = proxy.detect_language(text, options).await.unwrap();
+    let language = results
+        .get("language")
+        .unwrap()
+        .downcast_ref::<&str>()
+        .unwrap();
+    assert!(language == "ru" || language == "uk", "{language}");
+
+    let results = proxy
+        .detect_language("12345", HashMap::new())
+        .await
+        .unwrap();
+    assert!(!results.contains_key("language"));
+}
+
+#[tokio::test]
+async fn config_round_trip() {
+    let Some(setup) = setup(&["bg-en"], FakeConfig::default()).await else {
+        return;
+    };
+    let proxy = Translator1Proxy::new(&setup.client).await.unwrap();
+    let config = proxy.get_config().await.unwrap();
+    assert_eq!(
+        config
+            .get("memory_budget_mb")
+            .unwrap()
+            .downcast_ref::<u64>()
+            .unwrap(),
+        512
+    );
+    assert_eq!(
+        config
+            .get("keep_warm")
+            .unwrap()
+            .downcast_ref::<u32>()
+            .unwrap(),
+        2
+    );
+    assert!(
+        config
+            .get("network")
+            .unwrap()
+            .downcast_ref::<bool>()
+            .unwrap()
+    );
+
+    let mut changed = proxy.receive_config_changed().await.unwrap();
+    let mut changes = HashMap::new();
+    changes.insert("memory_budget_mb", Value::from(300u32));
+    changes.insert("network", Value::from(false));
+    proxy.set_config(changes).await.unwrap();
+
+    let signal = tokio::time::timeout(Duration::from_secs(5), changed.next())
+        .await
+        .expect("ConfigChanged arrives")
+        .unwrap();
+    let args = signal.args().unwrap();
+    assert_eq!(
+        args.config
+            .get("memory_budget_mb")
+            .unwrap()
+            .downcast_ref::<u64>()
+            .unwrap(),
+        300
+    );
+
+    let config = proxy.get_config().await.unwrap();
+    assert_eq!(
+        config
+            .get("memory_budget_mb")
+            .unwrap()
+            .downcast_ref::<u64>()
+            .unwrap(),
+        300
+    );
+    assert!(
+        !config
+            .get("network")
+            .unwrap()
+            .downcast_ref::<bool>()
+            .unwrap()
+    );
+    let file = std::fs::read_to_string(setup.tmp.path().join("config/config.toml")).unwrap();
+    assert!(file.contains("memory_budget_mb = 300"), "{file}");
+    assert!(file.contains("network = false"), "{file}");
+
+    // The network switch takes effect at once.
+    let error = proxy
+        .install_pair("de", "en", HashMap::new())
+        .await
+        .unwrap_err();
+    assert!(error.to_string().contains("NetworkDisabled"), "{error}");
+
+    // All or nothing.
+    let mut changes = HashMap::new();
+    changes.insert("keep_warm", Value::from(4u32));
+    changes.insert("memory_budget_mb", Value::from(1u32));
+    let error = proxy.set_config(changes).await.unwrap_err();
+    assert!(error.to_string().contains("InvalidArgument"), "{error}");
+    let config = proxy.get_config().await.unwrap();
+    assert_eq!(
+        config
+            .get("keep_warm")
+            .unwrap()
+            .downcast_ref::<u32>()
+            .unwrap(),
+        2
+    );
+}
+
+#[tokio::test]
+async fn pairs_carry_registry_quality() {
+    let Some(setup) = setup(&["bg-en", "en-bg"], FakeConfig::default()).await else {
+        return;
+    };
+    let proxy = Translator1Proxy::new(&setup.client).await.unwrap();
+    let pairs = proxy.list_language_pairs().await.unwrap();
+    let row = |source: &str, target: &str| {
+        pairs
+            .iter()
+            .find(|p| {
+                p.get("source").unwrap().downcast_ref::<&str>().unwrap() == source
+                    && p.get("target").unwrap().downcast_ref::<&str>().unwrap() == target
+            })
+            .unwrap()
+    };
+    let bg_en = row("bg", "en");
+    assert_eq!(
+        bg_en
+            .get("release_status")
+            .unwrap()
+            .downcast_ref::<&str>()
+            .unwrap(),
+        "Release"
+    );
+    assert_eq!(
+        bg_en.get("quality").unwrap().downcast_ref::<f64>().unwrap(),
+        0.8719
+    );
+    // The registry is keyed by the model file's hash, and both fake models
+    // are the same bytes, so the entry describes en-bg as well.
+    assert!(row("en", "bg").contains_key("quality"));
 }

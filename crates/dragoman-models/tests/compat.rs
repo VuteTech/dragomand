@@ -135,8 +135,8 @@ async fn check_pair(
         .translate(vec!["Firefox 2024.".into()], TranslateOptions::default())
         .await
         .map_err(|e| format!("translate: {e}"))?;
-    if out.len() != 1 || out[0].trim().is_empty() {
+    if out.len() != 1 || out[0].text.trim().is_empty() {
         return Err(format!("empty translation: {out:?}"));
     }
-    Ok(out.into_iter().next().unwrap())
+    Ok(out.into_iter().next().unwrap().text)
 }

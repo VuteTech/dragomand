@@ -40,8 +40,23 @@ async fn run(cli: Cli) -> Result<(), String> {
             html,
             no_pivot,
             batch,
+            file,
+            output,
             text,
         } => {
+            if let Some(file) = file {
+                return bus::translate_file(
+                    &source,
+                    &target,
+                    &file,
+                    output.as_deref(),
+                    html,
+                    no_pivot,
+                    batch,
+                    json,
+                )
+                .await;
+            }
             let segments = if text.is_empty() {
                 let mut input = String::new();
                 std::io::stdin()
@@ -56,6 +71,19 @@ async fn run(cli: Cli) -> Result<(), String> {
             }
             bus::translate(&source, &target, segments, html, no_pivot, batch, json).await
         }
+        Command::Detect { candidates, text } => {
+            let text = if text.is_empty() {
+                let mut input = String::new();
+                std::io::stdin()
+                    .read_to_string(&mut input)
+                    .map_err(|e| e.to_string())?;
+                input
+            } else {
+                text.join(" ")
+            };
+            bus::detect(&text, &candidates, json).await
+        }
+        Command::Config { key, value } => bus::config(key.as_deref(), value.as_deref(), json).await,
         Command::Pairs {
             installed,
             available,

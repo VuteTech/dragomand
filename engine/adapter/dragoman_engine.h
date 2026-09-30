@@ -89,6 +89,24 @@ int dg_translate_batch(dg_engine *engine, dg_model *first, dg_model *second,
 size_t dg_result_len(const dg_result *result);
 /* Valid until dg_result_free. index must be < dg_result_len(). */
 dg_text dg_result_text(const dg_result *result, size_t index);
+
+/* A byte range [begin, end) in a UTF-8 text. */
+typedef struct dg_range {
+    size_t begin;
+    size_t end;
+} dg_range;
+
+/* The engine translates sentence by sentence: sentence i of a segment's
+ * translation renders sentence i of the segment. This returns how many
+ * sentences segment index had (0 for an out-of-range index). */
+size_t dg_result_sentence_count(const dg_result *result, size_t index);
+/* Byte ranges of one sentence in the source segment (as passed to
+ * dg_translate_batch) and in its translation (dg_result_text). Returns 0,
+ * or nonzero for an out-of-range index or sentence. Added in ABI 1 without
+ * changing the existing functions. */
+int dg_result_sentence(const dg_result *result, size_t index, size_t sentence,
+                       dg_range *source, dg_range *target);
+
 void dg_result_free(dg_result *result);
 
 /* Message is valid until dg_error_free. Never NULL for a stored error. */

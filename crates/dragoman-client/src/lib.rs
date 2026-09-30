@@ -11,7 +11,7 @@
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use zbus::zvariant::{ObjectPath, OwnedObjectPath, OwnedValue, Value};
+use zbus::zvariant::{Fd, ObjectPath, OwnedObjectPath, OwnedValue, Value};
 
 pub mod names {
     pub const BUS_NAME: &str = "dev.l10n_bg.dragomand.Translator1";
@@ -39,6 +39,12 @@ pub mod result_key {
     pub const PIVOT: &str = "pivot";
     /// `s`: error message, present when the code is [`super::response_code::ERROR`].
     pub const ERROR_MESSAGE: &str = "error";
+    /// `aa(uuuu)`: per segment, (source begin, source end, translation
+    /// begin, translation end) of every sentence, in code points; present
+    /// when Translate was asked for `sentences`.
+    pub const SENTENCES: &str = "sentences";
+    /// `u`: lines TranslateFd translated.
+    pub const LINES: &str = "lines";
 }
 
 #[zbus::proxy(
@@ -69,6 +75,27 @@ pub trait Translator1 {
         options: HashMap<&str, Value<'_>>,
     ) -> zbus::Result<OwnedObjectPath>;
 
+    /// Translate a document read from `input` into `output`, line by line.
+    /// Options: `handle_token` (s), `html` (b), `allow_pivot` (b),
+    /// `priority` (s, default `batch`).
+    #[zbus(name = "TranslateFd")]
+    fn translate_fd(
+        &self,
+        source: &str,
+        target: &str,
+        input: Fd<'_>,
+        output: Fd<'_>,
+        options: HashMap<&str, Value<'_>>,
+    ) -> zbus::Result<OwnedObjectPath>;
+
+    /// Identify the language of `text`. Options: `candidates` (as).
+    /// Results: `language` (s), `confidence` (d), `reliable` (b).
+    fn detect_language(
+        &self,
+        text: &str,
+        options: HashMap<&str, Value<'_>>,
+    ) -> zbus::Result<HashMap<String, OwnedValue>>;
+
     /// Install or upgrade a pair. Options: `handle_token` (s).
     fn install_pair(
         &self,
@@ -87,6 +114,16 @@ pub trait Translator1 {
 
     /// Loaded pairs, queue length, and similar liveness data.
     fn get_status(&self) -> zbus::Result<HashMap<String, OwnedValue>>;
+
+    /// The daemon configuration (memory_budget_mb, keep_warm, ...).
+    fn get_config(&self) -> zbus::Result<HashMap<String, OwnedValue>>;
+
+    /// Change configuration keys; persisted and applied at once.
+    fn set_config(&self, changes: HashMap<&str, Value<'_>>) -> zbus::Result<()>;
+
+    /// The whole configuration after a change.
+    #[zbus(signal)]
+    fn config_changed(&self, config: HashMap<String, OwnedValue>) -> zbus::Result<()>;
 
     #[zbus(property)]
     fn version(&self) -> zbus::Result<String>;

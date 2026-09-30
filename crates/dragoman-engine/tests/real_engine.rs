@@ -50,7 +50,10 @@ async fn translates_bulgarian_to_english() {
             TranslateOptions::default(),
         )
         .await
-        .unwrap();
+        .unwrap()
+        .into_iter()
+        .map(|t| t.text)
+        .collect::<Vec<_>>();
     assert_eq!(out.len(), 2);
     assert!(
         out[0].to_lowercase().contains("good morning"),
@@ -73,7 +76,10 @@ async fn pivots_through_english() {
     let out = worker
         .translate(vec!["Добро утро.".into()], TranslateOptions::default())
         .await
-        .unwrap();
+        .unwrap()
+        .into_iter()
+        .map(|t| t.text)
+        .collect::<Vec<_>>();
     assert!(
         out[0].contains("утро"),
         "round trip lost the morning: {out:?}"
@@ -93,7 +99,10 @@ async fn html_markup_is_preserved() {
             TranslateOptions { html: true },
         )
         .await
-        .unwrap();
+        .unwrap()
+        .into_iter()
+        .map(|t| t.text)
+        .collect::<Vec<_>>();
     assert!(out[0].contains("<b>"), "markup dropped: {out:?}");
 }
 
@@ -111,4 +120,36 @@ async fn missing_model_file_is_an_error_not_a_crash() {
     };
     let (_worker, ready) = Worker::spawn(backend, spec, None);
     ready.await.unwrap().unwrap_err();
+}
+
+#[tokio::test]
+async fn reports_sentence_pairs() {
+    let Some(root) = test_models() else { return };
+    let backend = BergamotBackend::new(0).unwrap();
+    let (worker, ready) = Worker::spawn(backend, model_spec(&root, "bg-en", "bgen"), None);
+    ready.await.unwrap().unwrap();
+
+    let source = "Добро утро. Котката спи на дивана.";
+    let out = worker
+        .translate(vec![source.into()], TranslateOptions::default())
+        .await
+        .unwrap();
+    let translation = &out[0];
+    assert_eq!(translation.sentences.len(), 2, "got: {translation:?}");
+    let first = &translation.sentences[0];
+    let second = &translation.sentences[1];
+    assert_eq!(source[first.source.clone()].trim(), "Добро утро.");
+    assert!(source[second.source.clone()].contains("Котката"));
+    assert!(
+        translation.text[first.target.clone()]
+            .to_lowercase()
+            .contains("morning"),
+        "got: {translation:?}"
+    );
+    assert!(
+        translation.text[second.target.clone()]
+            .to_lowercase()
+            .contains("cat"),
+        "got: {translation:?}"
+    );
 }

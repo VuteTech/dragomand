@@ -32,11 +32,15 @@ with its language, so `zh-Hans-en` is Simplified Chinese to English.
 
 ```
 dragomanctl translate --from SRC --to TRG [options] [TEXT...]
+dragomanctl translate --from SRC --to TRG --file FILE [-o OUT]
 ```
 
 Translates the given text segments, or standard input when no `TEXT` is
-given (one segment per line). If the language pair is not installed, it is
-downloaded first.
+given (one segment per line). With `--file`, it translates a whole
+document instead: the daemon reads the file through a file descriptor
+and writes the translation to `OUT`, or straight to standard output,
+reporting progress on standard error. If the language pair is not
+installed, it is downloaded first.
 
 | Option | Meaning |
 |---|---|
@@ -45,9 +49,21 @@ downloaded first.
 | `--html` | Treat the input as HTML and preserve the markup in the translation. |
 | `--no-pivot` | Fail instead of pivoting through English when no direct model exists. |
 | `--batch` | Queue behind interactive requests from other applications. |
+| `--file FILE` | Translate this UTF-8 document line by line (up to 64 MiB). Lines without letters or digits are copied. |
+| `-o`, `--output OUT` | Where `--file` writes the translation; standard output when absent. |
 
 When the daemon pivots through English, it says so on standard error, so
 scripts capturing standard output are unaffected.
+
+## detect
+
+```
+dragomanctl detect [--candidates LANG,LANG...] [TEXT...]
+```
+
+Identifies the language of the text (standard input when no `TEXT` is
+given), with a confidence between 0 and 1. By default only the languages
+of known pairs are considered; `--candidates` narrows it further.
 
 ## pairs
 
@@ -56,7 +72,8 @@ dragomanctl pairs [--installed | --available]
 ```
 
 Lists language pairs with their install state, versions and origin
-(system or user store). With no flag it lists both installed pairs and
+(system or user store), and, once `update --check` has fetched Mozilla's
+model registry, each model's quality score (COMET-22, 0 to 1). With no flag it lists both installed pairs and
 pairs available from the provider's cached catalog. The list works
 offline; refresh the catalog with `dragomanctl update --check`.
 
@@ -92,6 +109,18 @@ dragomanctl update [--check]
 
 Refreshes the model catalog from the network and installs every available
 update. With `--check` it only reports what is newer, without installing.
+
+## config
+
+```
+dragomanctl config [KEY [VALUE]]
+```
+
+Without arguments, prints the daemon's configuration. With a `KEY`, prints
+that setting; with a `KEY` and a `VALUE` (`true`, `false` or a number),
+changes it. Changes apply at once and are written to `config.toml`; see
+[Configuration](configuration.md) for the keys. Example:
+`dragomanctl config memory_budget_mb 256`.
 
 ## status
 

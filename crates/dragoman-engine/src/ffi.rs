@@ -46,6 +46,12 @@ pub struct dg_text {
 }
 
 #[repr(C)]
+pub struct dg_range {
+    pub begin: usize,
+    pub end: usize,
+}
+
+#[repr(C)]
 pub struct dg_translate_options {
     pub html: c_int,
 }
@@ -80,6 +86,14 @@ unsafe extern "C" {
 
     pub fn dg_result_len(result: *const dg_result) -> usize;
     pub fn dg_result_text(result: *const dg_result, index: usize) -> dg_text;
+    pub fn dg_result_sentence_count(result: *const dg_result, index: usize) -> usize;
+    pub fn dg_result_sentence(
+        result: *const dg_result,
+        index: usize,
+        sentence: usize,
+        source: *mut dg_range,
+        target: *mut dg_range,
+    ) -> c_int;
     pub fn dg_result_free(result: *mut dg_result);
 
     pub fn dg_error_message(err: *const dg_error) -> *const c_char;

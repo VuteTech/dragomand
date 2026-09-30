@@ -25,6 +25,8 @@ rustix = { version = "1", features = ["event"] }
 serde = { version = "1", features = ["derive"] }
 thiserror.workspace = true
 toml = "0.9"
+toml_edit = "0.25"
+whatlang = "0.18"
 tokio = { workspace = true, features = ["rt-multi-thread", "macros", "sync", "time", "signal"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

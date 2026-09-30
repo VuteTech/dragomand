@@ -13,14 +13,21 @@ A malformed file or an unknown key is a hard error: the daemon refuses to
 start rather than silently ignore a typo, and the reason appears in the
 journal.
 
-Because the daemon exits when idle, configuration changes take effect
-soon on their own. To apply one immediately:
+The easiest way to change a setting is through the daemon itself, which
+applies it at once and writes it to the file, keeping its comments:
+
+```sh
+dragomanctl config memory_budget_mb 256
+```
+
+Settings screens (such as the Dragomand module in KDE's System Settings)
+use the same `SetConfig` D-Bus method. After editing the file by hand,
+the change takes effect when the daemon next starts; because it exits
+when idle, that happens soon on its own. To apply it immediately:
 
 ```sh
 systemctl --user stop dragomand.service
 ```
-
-The next request starts a fresh daemon with the new settings.
 
 ## All settings and their defaults
 

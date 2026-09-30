@@ -19,7 +19,7 @@ use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
-use dragoman_engine::{TranslateOptions, Worker};
+use dragoman_engine::{TranslateOptions, Translation, Worker};
 use dragoman_models::Stores;
 use tokio::sync::{Notify, oneshot};
 
@@ -48,11 +48,11 @@ pub enum JobError {
 
 struct QueuedJob {
     remaining: VecDeque<String>,
-    done: Vec<String>,
+    done: Vec<Translation>,
     html: bool,
     priority: Priority,
     cancelled: Arc<AtomicBool>,
-    reply: oneshot::Sender<std::result::Result<Vec<String>, JobError>>,
+    reply: oneshot::Sender<std::result::Result<Vec<Translation>, JobError>>,
 }
 
 #[derive(Default)]
@@ -97,7 +97,7 @@ impl PairEntry {
         html: bool,
         priority: Priority,
         cancelled: Arc<AtomicBool>,
-    ) -> std::result::Result<oneshot::Receiver<std::result::Result<Vec<String>, JobError>>, ()>
+    ) -> std::result::Result<oneshot::Receiver<std::result::Result<Vec<Translation>, JobError>>, ()>
     {
         let (reply, receiver) = oneshot::channel();
         let job = QueuedJob {
@@ -280,6 +280,13 @@ impl PairWorkers {
         }
     }
 
+    /// Evicts idle routes until the loaded ones fit `budget_mb` (after the
+    /// budget was lowered at run time).
+    pub async fn enforce_budget(&self, budget_mb: u64) {
+        let mut entries = self.entries.lock().await;
+        Self::evict_over_budget(&mut entries, budget_mb);
+    }
+
     /// Periodic policy sweep: drop routes idle beyond the keep-warm
     /// window, and keep at most `keep_warm` unpinned routes (LRU order).
     pub async fn sweep(&self, keep_warm: usize, window: Duration) {
@@ -366,8 +373,8 @@ pub fn resident_mb() -> u64 {
 /// jobs one chunk at a time, and ends when the queue closes.
 async fn run_scheduler(worker: Worker, queue: Arc<PairQueue>) {
     // Sends the final answer for an accepted job.
-    let finish = |job_reply: oneshot::Sender<std::result::Result<Vec<String>, JobError>>,
-                  result: std::result::Result<Vec<String>, JobError>| {
+    let finish = |job_reply: oneshot::Sender<std::result::Result<Vec<Translation>, JobError>>,
+                  result: std::result::Result<Vec<Translation>, JobError>| {
         queue.active.fetch_sub(1, Ordering::SeqCst);
         let _ = job_reply.send(result);
     };

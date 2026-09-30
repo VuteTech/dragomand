@@ -103,6 +103,8 @@ pub struct UpdateInfo {
 pub struct RemoteSettingsProvider<H> {
     http: H,
     config: RemoteSettingsConfig,
+    /// `config.allow_prerelease`, switchable while running.
+    allow_prerelease: std::sync::atomic::AtomicBool,
 }
 
 #[derive(Deserialize)]
@@ -125,7 +127,23 @@ struct AttachmentsCapability {
 
 impl<H: Http> RemoteSettingsProvider<H> {
     pub fn new(http: H, config: RemoteSettingsConfig) -> Self {
-        RemoteSettingsProvider { http, config }
+        let allow_prerelease = std::sync::atomic::AtomicBool::new(config.allow_prerelease);
+        RemoteSettingsProvider {
+            http,
+            config,
+            allow_prerelease,
+        }
+    }
+
+    /// Opts into (or out of) pre-release models from now on.
+    pub fn set_allow_prerelease(&self, allow: bool) {
+        self.allow_prerelease
+            .store(allow, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    fn prerelease(&self) -> bool {
+        self.allow_prerelease
+            .load(std::sync::atomic::Ordering::Relaxed)
     }
 
     /// The underlying HTTP implementation (tests observe traffic through
@@ -157,7 +175,7 @@ impl<H: Http> RemoteSettingsProvider<H> {
                 message: e.to_string(),
             })?;
 
-        let env = FilterEnv::prerelease(self.config.allow_prerelease);
+        let env = FilterEnv::prerelease(self.prerelease());
         let mut skipped_filters = Vec::new();
         let sets = accepted_sets(&records.data, &env, &mut skipped_filters);
         Ok(Available {
@@ -176,7 +194,7 @@ impl<H: Http> RemoteSettingsProvider<H> {
         let records: RecordsResponse = serde_json::from_slice(&records).ok()?;
         let info = std::fs::read(self.config.cache_dir.join("server-info.json")).ok()?;
         let info: ServerInfo = serde_json::from_slice(&info).ok()?;
-        let env = FilterEnv::prerelease(self.config.allow_prerelease);
+        let env = FilterEnv::prerelease(self.prerelease());
         let mut skipped_filters = Vec::new();
         let sets = accepted_sets(&records.data, &env, &mut skipped_filters);
         Some(Available {
@@ -188,38 +206,7 @@ impl<H: Http> RemoteSettingsProvider<H> {
 
     /// GET with ETag revalidation backed by files in the cache directory.
     async fn cached_get(&self, url: &str, cache_name: &str) -> Result<Vec<u8>> {
-        let body_path = self.config.cache_dir.join(format!("{cache_name}.json"));
-        let etag_path = self.config.cache_dir.join(format!("{cache_name}.etag"));
-        let cached_body = std::fs::read(&body_path).ok();
-        let cached_etag = std::fs::read_to_string(&etag_path).ok();
-
-        let etag = cached_body
-            .is_some()
-            .then_some(cached_etag.as_deref())
-            .flatten();
-        match self.http.get(url, etag).await {
-            Ok(FetchResult::NotModified) => {
-                Ok(cached_body.expect("etag was only sent with a cached body"))
-            }
-            Ok(FetchResult::Fetched { bytes, etag }) => {
-                let _ = std::fs::create_dir_all(&self.config.cache_dir);
-                let _ = std::fs::write(&body_path, &bytes);
-                match etag {
-                    Some(etag) => {
-                        let _ = std::fs::write(&etag_path, etag);
-                    }
-                    None => {
-                        let _ = std::fs::remove_file(&etag_path);
-                    }
-                }
-                Ok(bytes)
-            }
-            // Network trouble: stale cache beats nothing at all.
-            Err(error) => match cached_body {
-                Some(bytes) => Ok(bytes),
-                None => Err(error.into()),
-            },
-        }
+        Ok(crate::http::cached_get(&self.http, url, &self.config.cache_dir, cache_name).await?)
     }
 
     /// Downloads, verifies and installs one model set into the user store.

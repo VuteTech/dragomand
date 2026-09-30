@@ -104,6 +104,11 @@ async fn search_provider_translates_and_describes() {
             user: user_store,
         },
         provider,
+        registry: dragoman_models::RegistryConfig {
+            url: "https://dragomand.invalid/models.json".into(),
+            cache_dir: tmp.path().join("registry"),
+        },
+        config_path: None,
         bus_address: Some(bus.address.clone()),
     })
     .await

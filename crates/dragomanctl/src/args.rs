@@ -29,7 +29,8 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Command {
     /// Translate text (reads stdin when no TEXT is given, one segment per
-    /// line). Installs the language pair on first use.
+    /// line), or a whole document with --file. Installs the language pair
+    /// on first use.
     Translate {
         /// Source language (BCP-47, e.g. bg).
         #[arg(short = 'f', long = "from")]
@@ -46,8 +47,30 @@ pub enum Command {
         /// Queue behind interactive requests.
         #[arg(long)]
         batch: bool,
+        /// Translate this document (UTF-8 text, line by line) through a
+        /// file descriptor; the translation goes to --output or stdout.
+        #[arg(long, value_name = "FILE", conflicts_with = "text")]
+        file: Option<std::path::PathBuf>,
+        /// Where --file writes the translation (stdout when absent).
+        #[arg(short = 'o', long, value_name = "FILE", requires = "file")]
+        output: Option<std::path::PathBuf>,
         /// Text segments; stdin when empty.
         text: Vec<String>,
+    },
+    /// Identify the language of a text (stdin when no TEXT is given).
+    Detect {
+        /// Only consider these languages, e.g. bg,ru,uk (default: those of
+        /// the known language pairs).
+        #[arg(long, value_delimiter = ',')]
+        candidates: Vec<String>,
+        text: Vec<String>,
+    },
+    /// Show the daemon configuration, one setting, or change one.
+    Config {
+        /// Setting name, e.g. memory_budget_mb.
+        key: Option<String>,
+        /// New value (true/false or a number); applied at once and saved.
+        value: Option<String>,
     },
     /// List language pairs.
     Pairs {

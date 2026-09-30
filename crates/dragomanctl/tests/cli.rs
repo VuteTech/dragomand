@@ -127,6 +127,11 @@ async fn setup(pairs: &[&str]) -> Option<Setup> {
             user: user_store,
         },
         provider,
+        registry: dragoman_models::RegistryConfig {
+            url: "https://dragomand.invalid/models.json".into(),
+            cache_dir: tmp.path().join("xdg-cache/dragomand/registry"),
+        },
+        config_path: None,
         bus_address: Some(bus.address.clone()),
     })
     .await
@@ -257,4 +262,65 @@ async fn completions_and_manpage_render() {
     assert!(stdout_of(&out).contains("dragomanctl"));
     let out = setup.ctl(&["manpage"]);
     assert!(stdout_of(&out).contains(".TH"));
+}
+
+#[tokio::test(flavor = "multi_thread")]
+async fn translate_file_detect_and_config() {
+    let Some(setup) = setup(&["bg-en"]).await else {
+        return;
+    };
+
+    // A document through TranslateFd, to a file and to stdout.
+    let input = setup.tmp.path().join("doc.txt");
+    std::fs::write(&input, "Първи ред.\n\nВтори ред.\n").unwrap();
+    let output = setup.tmp.path().join("doc.en.txt");
+    let out = setup.ctl(&[
+        "translate",
+        "-f",
+        "bg",
+        "-t",
+        "en",
+        "--file",
+        input.to_str().unwrap(),
+        "-o",
+        output.to_str().unwrap(),
+    ]);
+    stdout_of(&out);
+    assert_eq!(
+        std::fs::read_to_string(&output).unwrap(),
+        "[model.bgen] Първи ред.\n\n[model.bgen] Втори ред.\n"
+    );
+    let out = setup.ctl(&[
+        "translate",
+        "-f",
+        "bg",
+        "-t",
+        "en",
+        "--file",
+        input.to_str().unwrap(),
+    ]);
+    assert_eq!(
+        stdout_of(&out),
+        "[model.bgen] Първи ред.\n\n[model.bgen] Втори ред.\n"
+    );
+
+    // Language detection, restricted to the installed languages.
+    let out = setup.ctl(&[
+        "--json",
+        "detect",
+        "Добро утро, как си днес? Времето е прекрасно.",
+    ]);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout_of(&out)).unwrap();
+    assert_eq!(parsed["language"], "bg");
+
+    // Configuration: list, set, get.
+    let out = setup.ctl(&["config"]);
+    assert!(stdout_of(&out).contains("memory_budget_mb = 512"));
+    let out = setup.ctl(&["config", "keep_warm", "3"]);
+    assert_eq!(stdout_of(&out).trim(), "3");
+    let out = setup.ctl(&["--json", "config", "network", "false"]);
+    let parsed: serde_json::Value = serde_json::from_str(&stdout_of(&out)).unwrap();
+    assert_eq!(parsed["network"], false);
+    let out = setup.ctl(&["config", "memory_budget_mb", "1"]);
+    assert_eq!(out.status.code(), Some(1), "an out-of-range value fails");
 }

@@ -29,7 +29,10 @@ async fn translates_through_worker() {
     let out = worker
         .translate(vec!["a".into(), "b".into()], TranslateOptions::default())
         .await
-        .unwrap();
+        .unwrap()
+        .into_iter()
+        .map(|t| t.text)
+        .collect::<Vec<_>>();
     assert_eq!(out, vec!["[bgen] a", "[bgen] b"]);
 }
 
@@ -42,7 +45,10 @@ async fn pivot_uses_both_models() {
     let out = worker
         .translate(vec!["x".into()], TranslateOptions::default())
         .await
-        .unwrap();
+        .unwrap()
+        .into_iter()
+        .map(|t| t.text)
+        .collect::<Vec<_>>();
     assert_eq!(out, vec!["[bgen+enbg] x"]);
 }
 
@@ -55,7 +61,10 @@ async fn html_option_reaches_backend() {
     let out = worker
         .translate(vec!["<b>t</b>".into()], TranslateOptions { html: true })
         .await
-        .unwrap();
+        .unwrap()
+        .into_iter()
+        .map(|t| t.text)
+        .collect::<Vec<_>>();
     assert_eq!(out, vec!["[m,html] <b>t</b>"]);
 }
 
@@ -110,4 +119,29 @@ async fn drop_unloads_and_pending_translate_errors() {
         .translate(vec!["y".into()], TranslateOptions::default())
         .await
         .unwrap();
+}
+
+#[tokio::test]
+async fn reports_sentence_pairs() {
+    let backend = FakeBackend::new(FakeConfig::default());
+    let (worker, ready) = Worker::spawn(backend, spec("m"), None);
+    ready.await.unwrap().unwrap();
+
+    let source = "Едно. Две!";
+    let out = worker
+        .translate(vec![source.into()], TranslateOptions::default())
+        .await
+        .unwrap();
+    let translation = &out[0];
+    let pairs: Vec<(&str, &str)> = translation
+        .sentences
+        .iter()
+        .map(|p| {
+            (
+                &source[p.source.clone()],
+                &translation.text[p.target.clone()],
+            )
+        })
+        .collect();
+    assert_eq!(pairs, [("Едно.", "[m] Едно."), ("Две!", "Две!")]);
 }

@@ -14,7 +14,7 @@ use std::thread;
 
 use tokio::sync::oneshot;
 
-use crate::backend::{Backend, Error, ModelFiles, Result, TranslateOptions};
+use crate::backend::{Backend, Error, ModelFiles, Result, TranslateOptions, Translation};
 
 /// What one worker loads: a direct pair, or two legs of a pivot route.
 pub struct ModelSpec {
@@ -26,7 +26,7 @@ pub struct ModelSpec {
 struct Job {
     segments: Vec<String>,
     options: TranslateOptions,
-    reply: oneshot::Sender<Result<Vec<String>>>,
+    reply: oneshot::Sender<Result<Vec<Translation>>>,
 }
 
 /// Handle to a worker thread. Cheap to use from async code.
@@ -106,7 +106,7 @@ impl Worker {
         &self,
         segments: Vec<String>,
         options: TranslateOptions,
-    ) -> Result<Vec<String>> {
+    ) -> Result<Vec<Translation>> {
         let (reply, receiver) = oneshot::channel();
         self.jobs
             .send(Job {

@@ -10,17 +10,20 @@
 
 pub mod backend;
 pub mod config;
+pub mod detect;
 pub mod error;
 pub mod lifecycle;
 pub mod requests;
 pub mod service;
 pub mod workers;
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use dragoman_client::names;
 use dragoman_models::Stores;
 use dragoman_models::http::ReqwestHttp;
+use dragoman_models::registry::{RegistryConfig, RegistryProvider};
 use dragoman_models::remote_settings::{RemoteSettingsConfig, RemoteSettingsProvider};
 
 use backend::BackendKind;
@@ -31,6 +34,11 @@ pub struct DaemonOptions {
     pub backend: BackendKind,
     pub stores: Stores,
     pub provider: RemoteSettingsConfig,
+    /// The model registry (quality metadata).
+    pub registry: RegistryConfig,
+    /// Where SetConfig writes the configuration; `None` keeps changes in
+    /// memory only.
+    pub config_path: Option<PathBuf>,
     /// D-Bus address to connect to; `None` uses the session bus.
     pub bus_address: Option<String>,
 }
@@ -45,6 +53,8 @@ impl DaemonOptions {
             backend: BackendKind::default_for_build(),
             stores: Stores::from_env(),
             provider,
+            registry: RegistryConfig::from_env(),
+            config_path: Some(config::Config::path()),
             bus_address: None,
         })
     }
@@ -82,9 +92,11 @@ pub async fn launch(options: DaemonOptions) -> zbus::Result<Daemon> {
     provider_config.allow_prerelease = options.config.allow_prerelease;
     let state = Arc::new(DaemonState::new(
         options.config,
+        options.config_path,
         options.backend,
         options.stores,
         RemoteSettingsProvider::new(ReqwestHttp::new(), provider_config),
+        RegistryProvider::new(ReqwestHttp::new(), options.registry),
     ));
 
     let builder = match &options.bus_address {

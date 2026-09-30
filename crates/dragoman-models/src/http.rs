@@ -6,6 +6,7 @@
 //! offline against a fake implementation.
 
 use std::future::Future;
+use std::path::Path;
 
 #[derive(Debug, thiserror::Error)]
 pub enum HttpError {
@@ -89,5 +90,47 @@ impl Http for ReqwestHttp {
             })?
             .to_vec();
         Ok(FetchResult::Fetched { bytes, etag })
+    }
+}
+
+/// GET with ETag revalidation backed by `<cache_dir>/<name>.json` and
+/// `<name>.etag`. When the network fails, a stale cached copy beats
+/// nothing at all.
+pub async fn cached_get<H: Http>(
+    http: &H,
+    url: &str,
+    cache_dir: &Path,
+    name: &str,
+) -> Result<Vec<u8>, HttpError> {
+    let body_path = cache_dir.join(format!("{name}.json"));
+    let etag_path = cache_dir.join(format!("{name}.etag"));
+    let cached_body = std::fs::read(&body_path).ok();
+    let cached_etag = std::fs::read_to_string(&etag_path).ok();
+
+    let etag = cached_body
+        .is_some()
+        .then_some(cached_etag.as_deref())
+        .flatten();
+    match http.get(url, etag).await {
+        Ok(FetchResult::NotModified) => {
+            Ok(cached_body.expect("etag was only sent with a cached body"))
+        }
+        Ok(FetchResult::Fetched { bytes, etag }) => {
+            let _ = std::fs::create_dir_all(cache_dir);
+            let _ = std::fs::write(&body_path, &bytes);
+            match etag {
+                Some(etag) => {
+                    let _ = std::fs::write(&etag_path, etag);
+                }
+                None => {
+                    let _ = std::fs::remove_file(&etag_path);
+                }
+            }
+            Ok(bytes)
+        }
+        Err(error) => match cached_body {
+            Some(bytes) => Ok(bytes),
+            None => Err(error),
+        },
     }
 }

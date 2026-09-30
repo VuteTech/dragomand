@@ -5,8 +5,13 @@
 //! Daemon-backed commands (everything except `store`).
 
 use std::collections::HashMap;
+use std::os::fd::AsFd;
+use std::path::Path;
 
-use dragoman_client::{Translator1Proxy, call_with_request, response_code, result_key};
+use dragoman_client::{
+    Request1Proxy, Translator1Proxy, call_with_request, response_code, result_key,
+};
+use futures_util::StreamExt;
 use zbus::zvariant::{OwnedValue, Value};
 
 pub type Fail = String;
@@ -109,6 +114,215 @@ pub async fn translate(
     Ok(())
 }
 
+/// Translates a document through TranslateFd: the daemon reads the file
+/// and writes the translation straight into `output` (or our stdout).
+#[allow(clippy::too_many_arguments)]
+pub async fn translate_file(
+    source: &str,
+    target: &str,
+    file: &Path,
+    output: Option<&Path>,
+    html: bool,
+    no_pivot: bool,
+    batch: bool,
+    json: bool,
+) -> Result<(), Fail> {
+    let (connection, proxy) = connect().await?;
+    let input = std::fs::File::open(file).map_err(|e| format!("{}: {e}", file.display()))?;
+    let output_file = match output {
+        Some(path) => {
+            Some(std::fs::File::create(path).map_err(|e| format!("{}: {e}", path.display()))?)
+        }
+        None => None,
+    };
+    let stdout = std::io::stdout();
+
+    let call = |token: String| {
+        let proxy = proxy.clone();
+        let connection = connection.clone();
+        let (source, target) = (source.to_owned(), target.to_owned());
+        let input = &input;
+        let output_fd = match &output_file {
+            Some(f) => f.as_fd(),
+            None => stdout.as_fd(),
+        };
+        async move {
+            // Report progress on stderr while the document is translated.
+            if !json {
+                if let Some(unique) = connection.unique_name() {
+                    if let Ok(path) = dragoman_client::request_path(unique.as_str(), &token) {
+                        if let Ok(request) = Request1Proxy::builder(&connection)
+                            .path(path)?
+                            .build()
+                            .await
+                        {
+                            if let Ok(mut progress) = request.receive_progress().await {
+                                tokio::spawn(async move {
+                                    while let Some(signal) = progress.next().await {
+                                        if let Ok(args) = signal.args() {
+                                            eprint!(
+                                                "\rdragomanctl: {:3.0}%",
+                                                args.fraction * 100.0
+                                            );
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            let mut options = HashMap::new();
+            options.insert("handle_token", Value::from(token));
+            if html {
+                options.insert("html", Value::from(true));
+            }
+            if no_pivot {
+                options.insert("allow_pivot", Value::from(false));
+            }
+            if !batch {
+                options.insert("priority", Value::from("interactive"));
+            }
+            proxy
+                .translate_fd(
+                    &source,
+                    &target,
+                    input.as_fd().into(),
+                    output_fd.into(),
+                    options,
+                )
+                .await
+        }
+    };
+
+    let outcome = match call_with_request(&connection, call).await {
+        Ok(outcome) => outcome,
+        Err(error) if error_name(&error) == Some("dev.l10n_bg.dragomand.Error.NotInstalled") => {
+            eprintln!("dragomanctl: {source}-{target} is not installed, fetching it …");
+            prepare(&connection, &proxy, source, target, no_pivot).await?;
+            call_with_request(&connection, call)
+                .await
+                .map_err(|e| e.to_string())?
+        }
+        Err(error) => return Err(error.to_string()),
+    };
+    if !json {
+        eprintln!();
+    }
+    if outcome.code != response_code::SUCCESS {
+        return Err(response_error(&outcome.results, "translation failed"));
+    }
+    let lines = outcome
+        .results
+        .get(result_key::LINES)
+        .and_then(|v| v.downcast_ref::<u32>().ok())
+        .unwrap_or(0);
+    let pivot = outcome.results.get(result_key::PIVOT).and_then(as_str);
+    if json {
+        println!("{}", serde_json::json!({"lines": lines, "pivot": pivot}));
+    } else if let Some(pivot) = pivot {
+        eprintln!("dragomanctl: translated {lines} lines via {pivot}");
+    } else {
+        eprintln!("dragomanctl: translated {lines} lines");
+    }
+    Ok(())
+}
+
+pub async fn detect(text: &str, candidates: &[String], json: bool) -> Result<(), Fail> {
+    let (_connection, proxy) = connect().await?;
+    let mut options = HashMap::new();
+    if !candidates.is_empty() {
+        options.insert("candidates", Value::from(candidates.to_vec()));
+    }
+    let results = proxy
+        .detect_language(text, options)
+        .await
+        .map_err(|e| e.to_string())?;
+    let language = results.get("language").and_then(as_str);
+    let confidence = results
+        .get("confidence")
+        .and_then(|v| v.downcast_ref::<f64>().ok())
+        .unwrap_or(0.0);
+    let reliable = results
+        .get("reliable")
+        .and_then(|v| v.downcast_ref::<bool>().ok())
+        .unwrap_or(false);
+    if json {
+        println!(
+            "{}",
+            serde_json::json!({"language": language, "confidence": confidence, "reliable": reliable})
+        );
+        return Ok(());
+    }
+    match language {
+        Some(language) => println!(
+            "{language} (confidence {confidence:.2}{})",
+            if reliable { "" } else { ", unreliable" }
+        ),
+        None => return Err("no language detected".into()),
+    }
+    Ok(())
+}
+
+fn config_value_json(value: &OwnedValue) -> serde_json::Value {
+    if let Ok(b) = value.downcast_ref::<bool>() {
+        return b.into();
+    }
+    if let Ok(n) = value.downcast_ref::<u64>() {
+        return n.into();
+    }
+    if let Ok(n) = value.downcast_ref::<u32>() {
+        return n.into();
+    }
+    serde_json::Value::Null
+}
+
+pub async fn config(key: Option<&str>, value: Option<&str>, json: bool) -> Result<(), Fail> {
+    let (_connection, proxy) = connect().await?;
+    if let (Some(key), Some(value)) = (key, value) {
+        let parsed = match value {
+            "true" | "yes" | "on" => Value::from(true),
+            "false" | "no" | "off" => Value::from(false),
+            number => Value::from(
+                number
+                    .parse::<u64>()
+                    .map_err(|_| format!("{value:?} is neither true/false nor a number"))?,
+            ),
+        };
+        let mut changes = HashMap::new();
+        changes.insert(key, parsed);
+        proxy.set_config(changes).await.map_err(|e| e.to_string())?;
+    }
+    let config = proxy.get_config().await.map_err(|e| e.to_string())?;
+    let mut entries: Vec<(&String, serde_json::Value)> = config
+        .iter()
+        .map(|(k, v)| (k, config_value_json(v)))
+        .collect();
+    entries.sort_by(|a, b| a.0.cmp(b.0));
+    if let Some(key) = key {
+        let (_, value) = entries
+            .iter()
+            .find(|(k, _)| k.as_str() == key)
+            .ok_or_else(|| format!("no setting {key:?}"))?;
+        if json {
+            println!("{}", serde_json::json!({ key: value }));
+        } else {
+            println!("{value}");
+        }
+        return Ok(());
+    }
+    if json {
+        let object: serde_json::Map<String, serde_json::Value> =
+            entries.into_iter().map(|(k, v)| (k.clone(), v)).collect();
+        println!("{}", serde_json::Value::Object(object));
+    } else {
+        for (key, value) in entries {
+            println!("{key} = {value}");
+        }
+    }
+    Ok(())
+}
+
 async fn prepare(
     connection: &zbus::Connection,
     proxy: &Translator1Proxy<'static>,
@@ -158,6 +372,9 @@ pub async fn pairs(installed_only: bool, available_only: bool, json: bool) -> Re
             continue;
         };
         let size = row.get("size").and_then(|v| v.downcast_ref::<u64>().ok());
+        let quality = row
+            .get("quality")
+            .and_then(|v| v.downcast_ref::<f64>().ok());
         printed.push(serde_json::json!({
             "source": source,
             "target": target,
@@ -166,6 +383,8 @@ pub async fn pairs(installed_only: bool, available_only: bool, json: bool) -> Re
             "origin": get("origin"),
             "architecture": get("architecture"),
             "size": size,
+            "release_status": get("release_status"),
+            "quality": quality,
         }));
     }
 
@@ -190,8 +409,12 @@ pub async fn pairs(installed_only: bool, available_only: bool, json: bool) -> Re
             .as_u64()
             .map(|b| format!("{:.1} MB", b as f64 / 1e6))
             .unwrap_or_else(|| "-".into());
+        let quality = row["quality"]
+            .as_f64()
+            .map(|q| format!("quality {q:.2}"))
+            .unwrap_or_default();
         println!(
-            "{:>7} -> {:<7} installed: {:<7} available: {:<7} {:<6} {:<12} {}",
+            "{:>7} -> {:<7} installed: {:<7} available: {:<7} {:<6} {:<12} {:<9} {}",
             s("source"),
             s("target"),
             s("installed_version"),
@@ -199,6 +422,7 @@ pub async fn pairs(installed_only: bool, available_only: bool, json: bool) -> Re
             s("origin"),
             s("architecture"),
             size,
+            quality,
         );
     }
     Ok(())

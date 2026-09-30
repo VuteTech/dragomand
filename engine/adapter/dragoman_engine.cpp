@@ -4,6 +4,7 @@
 
 #include "dragoman_engine.h"
 
+#include <algorithm>
 #include <cstring>
 #include <memory>
 #include <mutex>
@@ -33,7 +34,12 @@ struct dg_model {
 };
 
 struct dg_result {
+    struct Sentence {
+        dg_range source;
+        dg_range target;
+    };
     std::vector<std::string> texts;
+    std::vector<std::vector<Sentence>> sentences; // parallel to texts
 };
 
 namespace {
@@ -185,7 +191,18 @@ int dg_translate_batch(dg_engine *engine, dg_model *first, dg_model *second,
 
         auto result = std::make_unique<dg_result>();
         result->texts.reserve(n);
+        result->sentences.reserve(n);
         for (bergamot::Response &response : responses) {
+            std::vector<dg_result::Sentence> sentences;
+            const size_t count =
+                std::min(response.source.numSentences(), response.target.numSentences());
+            sentences.reserve(count);
+            for (size_t i = 0; i < count; ++i) {
+                const auto source = response.source.sentenceAsByteRange(i);
+                const auto target = response.target.sentenceAsByteRange(i);
+                sentences.push_back({{source.begin, source.end}, {target.begin, target.end}});
+            }
+            result->sentences.push_back(std::move(sentences));
             result->texts.push_back(std::move(response.target.text));
         }
         *out = result.release();
@@ -203,6 +220,29 @@ dg_text dg_result_text(const dg_result *result, size_t index) {
     }
     const std::string &text = result->texts[index];
     return dg_text{text.c_str(), text.size()};
+}
+
+size_t dg_result_sentence_count(const dg_result *result, size_t index) {
+    if (result == nullptr || index >= result->sentences.size()) {
+        return 0;
+    }
+    return result->sentences[index].size();
+}
+
+int dg_result_sentence(const dg_result *result, size_t index, size_t sentence,
+                       dg_range *source, dg_range *target) {
+    if (result == nullptr || index >= result->sentences.size() ||
+        sentence >= result->sentences[index].size()) {
+        return -1;
+    }
+    const dg_result::Sentence &span = result->sentences[index][sentence];
+    if (source != nullptr) {
+        *source = span.source;
+    }
+    if (target != nullptr) {
+        *target = span.target;
+    }
+    return 0;
 }
 
 void dg_result_free(dg_result *result) { delete result; }

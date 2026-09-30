@@ -9,7 +9,8 @@
  *   dg-smoke --pivot MODEL1 VOCAB1 MODEL2 VOCAB2 < input.txt
  *
  * Reads stdin (whole input as one segment per line), translates, prints one
- * line per input line. The Marian options match what Firefox passes; see
+ * line per input line. With DG_SMOKE_SENTENCES set in the environment, it
+ * also prints each sentence pair to stderr. The Marian options match what Firefox passes; see
  * docs/model-compatibility.md.
  */
 
@@ -117,10 +118,19 @@ int main(int argc, char **argv) {
                            &translate_options, &result, &err) != 0) {
         die("translate failed", err);
     }
+    const int show_sentences = getenv("DG_SMOKE_SENTENCES") != NULL;
     for (size_t i = 0; i < dg_result_len(result); i++) {
         dg_text text = dg_result_text(result, i);
         fwrite(text.data, 1, text.len, stdout);
         fputc('\n', stdout);
+        for (size_t k = 0; show_sentences && k < dg_result_sentence_count(result, i); k++) {
+            dg_range source, target;
+            if (dg_result_sentence(result, i, k, &source, &target) == 0) {
+                fprintf(stderr, "%zu.%zu: [%.*s] = [%.*s]\n", i, k,
+                        (int)(source.end - source.begin), segments[i].data + source.begin,
+                        (int)(target.end - target.begin), text.data + target.begin);
+            }
+        }
     }
 
     dg_result_free(result);
