@@ -224,6 +224,7 @@ dragomanctl store install --root "$pkgdir/usr/share/dragomand/models" bg-en en-b
 
 ## Editor plugin
 
-The KTextEditor plugin for Kate, KWrite and KDevelop is a separate build
-with its own dependencies (Qt 6 and KDE Frameworks 6). See
+The KTextEditor plugin for Kate, KWrite and KDevelop is a separate
+package, `dragoman-ktexteditor`, in the same repository as Dragomand, so
+the daemon never pulls in KDE dependencies. See
 [Desktop integrations](integrations.md#ktexteditor-plugin-kate-kwrite-kdevelop).

@@ -70,8 +70,9 @@ on the [LibreOffice extension](libreoffice.md) page.
 
 ## KTextEditor plugin (Kate, KWrite, KDevelop)
 
-The `dragoman-ktexteditor` project is a native plugin for the editor
-framework behind Kate, KWrite and KDevelop. Unlike the script-based
+The [dragoman-ktexteditor](https://github.com/eniac111/dragoman-ktexteditor)
+project is a native plugin for the editor framework behind Kate, KWrite
+and KDevelop. Unlike the script-based
 recipes it
 talks D-Bus directly, shows download progress in the editor and never
 loses your text: if the document changes while a translation is in
@@ -91,17 +92,18 @@ Empty lines in the selection are preserved. Selections are capped at the
 daemon's per-request limits (256 lines, 1 MiB); run bigger jobs through
 `dragomanctl`.
 
-Building needs Qt 6, KDE Frameworks 6 and extra-cmake-modules, from a
-`dragoman-ktexteditor` checkout:
+Released versions come from the same package repository as Dragomand
+(see [Install](install.md)): install the `dragoman-ktexteditor` package.
+It is a separate package, so the daemon never pulls in KDE dependencies.
+
+Building it yourself needs Qt 6.8, KDE Frameworks 6.13 and
+extra-cmake-modules, from a `dragoman-ktexteditor` checkout:
 
 ```sh
 cmake -S . -B build -G Ninja
 cmake --build build
 sudo cmake --install build
 ```
-
-Distributions should package it separately from the daemon so the daemon
-package never pulls KDE dependencies.
 
 ## Kate without compiling anything
 

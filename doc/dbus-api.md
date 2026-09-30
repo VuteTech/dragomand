@@ -173,7 +173,8 @@ busctl --user introspect dev.l10n_bg.dragomand.Translator1 \
 
 - **Rust**: the `dragoman-client` crate in the source tree provides typed
   proxies and the shared request handling; `dragomanctl` is built on it.
-- **Qt / C++**: `dragomanclient.{h,cpp}` in the `dragoman-ktexteditor`
+- **Qt / C++**: `src/dragomanclient.{h,cpp}` in the
+  [dragoman-ktexteditor](https://github.com/eniac111/dragoman-ktexteditor)
   project is a compact QtDBus implementation of the full request
   pattern, including install on demand through `PreparePair` with
   progress reporting.

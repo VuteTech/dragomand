@@ -30,6 +30,7 @@ nav:
   - Home: index.md
   - Install: install.md
   - Integrations: integrations.md
+  - About: about.md
   - Documentation:
       - Quick start: quickstart.md
       - LibreOffice extension: libreoffice.md
@@ -55,6 +56,7 @@ plugins:
             Home: Начало
             Install: Инсталиране
             Integrations: Интеграции
+            About: Относно
             Documentation: Документация
             Quick start: Бърз старт
             LibreOffice extension: Разширение за LibreOffice
