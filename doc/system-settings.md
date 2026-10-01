@@ -1,4 +1,4 @@
-# System Settings module
+# KDE System Settings module
 
 The **Offline Translation** page of KDE System Settings configures the
 Dragomand daemon and manages its language models: how much memory the
@@ -8,6 +8,8 @@ language pairs are installed.
 It is developed as its own project,
 [dragoman-kcm](https://github.com/VuteTech/dragoman-kcm), and packaged
 as `dragoman-kcm` in the same repository as Dragomand.
+
+![The Offline Translation page: memory and performance settings, network access, and the installed language models.](images/system-settings/offline-translation.png){ .screenshot .narrow }
 
 ## Requirements
 

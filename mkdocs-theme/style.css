@@ -370,6 +370,14 @@ img.screenshot {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
+/* Tall or small windows: keep them at their own size, not page width. */
+img.screenshot.narrow {
+  width: auto;
+  max-height: 640px;
+  border: none;
+  box-shadow: none;
+}
+
 /* A page's application icon, beside its title. */
 img.page-icon {
   float: right;

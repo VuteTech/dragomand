@@ -36,7 +36,7 @@ nav:
       - LibreOffice extension: libreoffice.md
       - KTextEditor plugin: ktexteditor.md
       - Krakoman: krakoman.md
-      - System Settings module: system-settings.md
+      - KDE System Settings module: system-settings.md
       - Plasma widget: plasma-widget.md
       - Command line: cli.md
       - Managing models: models.md
@@ -67,7 +67,7 @@ plugins:
             LibreOffice extension: Разширение за LibreOffice
             KTextEditor plugin: Приставка за KTextEditor
             Krakoman: Кракоман
-            System Settings module: Модул за Системни настройки
+            KDE System Settings module: Модул за Системните настройки на KDE
             Plasma widget: Джаджа за Plasma
             Qt client library: Клиентска библиотека за Qt
             Command line: Команден ред

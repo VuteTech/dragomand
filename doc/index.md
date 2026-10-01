@@ -48,7 +48,7 @@ downloads, LRU keep-warm with memory-pressure eviction, KRunner and
 GNOME Shell search integration, a LibreOffice extension and a
 KTextEditor (Kate) plugin. For KDE there are also
 [Krakoman](krakoman.md), a graphical translator, a
-[System Settings module](system-settings.md) and a
+[KDE System Settings module](system-settings.md) and a
 [Plasma widget](plasma-widget.md).
 Bulgarian and English form the first pair working end to end; every
 pair Mozilla publishes is in scope.

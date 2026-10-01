@@ -13,6 +13,8 @@ title: Джаджа за Plasma
 [dragoman-plasmoid](https://github.com/VuteTech/dragoman-plasmoid), и се
 пакетира като `dragoman-plasmoid` в същото хранилище като Dragomand.
 
+![Джаджата „Офлайн преводач“: текстът е на български, затова езиците са разменени автоматично.](images/plasma-widget/widget.png){ .screenshot .narrow }
+
 ## Изисквания {#requirements}
 
 **Dragomand.** Джаджата се обръща към демона през D-Bus. Пакетът зависи

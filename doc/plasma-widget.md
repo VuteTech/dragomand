@@ -8,6 +8,8 @@ It is developed as its own project,
 [dragoman-plasmoid](https://github.com/VuteTech/dragoman-plasmoid), and
 packaged as `dragoman-plasmoid` in the same repository as Dragomand.
 
+![The Offline Translator widget translating English into Bulgarian.](images/plasma-widget/widget.png){ .screenshot .narrow }
+
 ## Requirements
 
 **Dragomand.** The widget talks to the daemon over D-Bus. The package

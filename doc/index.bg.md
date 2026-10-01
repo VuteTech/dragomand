@@ -49,7 +49,7 @@ Good morning. How are you today?
 недостиг на памет, интеграции с KRunner и GNOME Shell, разширение за
 LibreOffice и приставка за KTextEditor (Kate). За KDE има още
 [Кракоман](krakoman.md), графичен преводач,
-[модул за Системни настройки](system-settings.md) и
+[модул за Системните настройки на KDE](system-settings.md) и
 [джаджа за Plasma](plasma-widget.md).
 Български и английски са първата двойка, работеща от край до край; в
 обхвата е всяка двойка, публикувана от Mozilla.

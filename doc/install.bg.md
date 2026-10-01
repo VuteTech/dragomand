@@ -200,6 +200,6 @@ Rust 1.85 или по-нов. Бележките за пакетиращите �
 | Пакет | Какво е |
 |---|---|
 | `krakoman` | [Кракоман](krakoman.md), графичният преводач |
-| `dragoman-kcm` | [Модулът за Системни настройки](system-settings.md) |
+| `dragoman-kcm` | [Модулът за Системните настройки на KDE](system-settings.md) |
 | `dragoman-plasmoid` | [Джаджата за Plasma](plasma-widget.md) |
 | `dragoman-ktexteditor` | [Приставката за KTextEditor](ktexteditor.md) за Kate, KWrite и KDevelop |

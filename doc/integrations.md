@@ -14,7 +14,7 @@ across all of it.
 | [LibreOffice](#libreoffice) | LibreOffice Writer | An extension to download |
 | [KTextEditor plugin](#ktexteditor) | Kate, KWrite, KDevelop | A separate package |
 | [Krakoman](#krakoman) | Any desktop, best on KDE Plasma | A separate package |
-| [System Settings module](#system-settings) | KDE Plasma | A separate package |
+| [KDE System Settings module](#system-settings) | KDE Plasma | A separate package |
 | [Plasma widget](#plasma-widget) | KDE Plasma | A separate package |
 | [Flatpak applications](#flatpak) | Sandboxed applications | One permission |
 | [Anything else](#anything-else) | Scripts, other programs | `dragomanctl` or D-Bus |
@@ -107,7 +107,7 @@ translates the selected text in any application. It is its own project,
 Installation, usage and troubleshooting are on the
 [Krakoman](krakoman.md) page.
 
-## System Settings module {#system-settings}
+## KDE System Settings module {#system-settings}
 
 The **Offline Translation** page of KDE System Settings: the daemon's
 memory budget, keep-warm and network settings, applied live, and the
@@ -116,7 +116,7 @@ is its own project,
 [dragoman-kcm](https://github.com/VuteTech/dragoman-kcm), packaged as
 `dragoman-kcm`.
 
-Details are on the [System Settings module](system-settings.md) page.
+Details are on the [KDE System Settings module](system-settings.md) page.
 
 ## Plasma widget {#plasma-widget}
 

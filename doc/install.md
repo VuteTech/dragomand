@@ -230,6 +230,6 @@ Dragomand, so the daemon never pulls in KDE dependencies:
 | Package | What it is |
 |---|---|
 | `krakoman` | [Krakoman](krakoman.md), the graphical translator |
-| `dragoman-kcm` | The [System Settings module](system-settings.md) |
+| `dragoman-kcm` | The [KDE System Settings module](system-settings.md) |
 | `dragoman-plasmoid` | The [Plasma widget](plasma-widget.md) |
 | `dragoman-ktexteditor` | The [KTextEditor plugin](ktexteditor.md) for Kate, KWrite and KDevelop |

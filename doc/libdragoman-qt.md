@@ -4,7 +4,7 @@ libdragoman-qt is the Qt 6 client library for Dragomand. It wraps the
 [D-Bus API](dbus-api.md) in asynchronous jobs, so a Qt application can
 translate text and documents, detect languages and manage language pairs
 without handling request objects and signals itself.
-[Krakoman](krakoman.md), the [System Settings module](system-settings.md),
+[Krakoman](krakoman.md), the [KDE System Settings module](system-settings.md),
 the [Plasma widget](plasma-widget.md) and the
 [KTextEditor plugin](ktexteditor.md) are built on it.
 
