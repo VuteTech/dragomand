@@ -35,10 +35,14 @@ nav:
       - Quick start: quickstart.md
       - LibreOffice extension: libreoffice.md
       - KTextEditor plugin: ktexteditor.md
+      - Krakoman: krakoman.md
+      - System Settings module: system-settings.md
+      - Plasma widget: plasma-widget.md
       - Command line: cli.md
       - Managing models: models.md
       - Configuration: configuration.md
       - D-Bus API: dbus-api.md
+      - Qt client library: libdragoman-qt.md
       - Troubleshooting: troubleshooting.md
 
 plugins:
@@ -62,6 +66,10 @@ plugins:
             Quick start: Бърз старт
             LibreOffice extension: Разширение за LibreOffice
             KTextEditor plugin: Приставка за KTextEditor
+            Krakoman: Кракоман
+            System Settings module: Модул за Системни настройки
+            Plasma widget: Джаджа за Plasma
+            Qt client library: Клиентска библиотека за Qt
             Command line: Команден ред
             Managing models: Управление на моделите
             Configuration: Настройка

@@ -12,6 +12,7 @@ version = 1
 path = [
     "**.md",
     "doc/CNAME",
+    "doc/images/**.png",
     "artwork/*.svg",
     "mkdocs-theme/*.svg",
     "Cargo.lock",

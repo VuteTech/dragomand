@@ -41,10 +41,15 @@ shared service instead:
 
 ## Currently implemented
 
-Version 0.1.0: the daemon with D-Bus API v1, the `dragomanctl`
-command-line client, install-on-demand model downloads, LRU keep-warm
-with memory-pressure eviction, KRunner and GNOME Shell search
-integration, a LibreOffice extension and a KTextEditor (Kate) plugin.
+Version 0.2.0: the daemon with D-Bus API v1, including whole documents,
+language detection, sentence alignment, model quality and live settings;
+the `dragomanctl` command-line client, install-on-demand model
+downloads, LRU keep-warm with memory-pressure eviction, KRunner and
+GNOME Shell search integration, a LibreOffice extension and a
+KTextEditor (Kate) plugin. For KDE there are also
+[Krakoman](krakoman.md), a graphical translator, a
+[System Settings module](system-settings.md) and a
+[Plasma widget](plasma-widget.md).
 Bulgarian and English form the first pair working end to end; every
 pair Mozilla publishes is in scope.
 

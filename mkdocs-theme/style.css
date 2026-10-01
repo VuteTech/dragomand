@@ -361,6 +361,23 @@ img {
   border-radius: 4px;
 }
 
+/* Application screenshots: a hairline frame, so the light window edge
+   stays visible on the white page. */
+img.screenshot {
+  display: block;
+  margin: 1rem 0 1.5rem;
+  border: 1px solid #d8d8d8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* A page's application icon, beside its title. */
+img.page-icon {
+  float: right;
+  width: 96px;
+  margin: 0 0 1rem 1.5rem;
+  border-radius: 0;
+}
+
 /* ---- Footnotes ---- */
 
 .footnotes {

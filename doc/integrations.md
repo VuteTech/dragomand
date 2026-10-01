@@ -13,6 +13,9 @@ across all of it.
 | [GNOME Shell search](#gnome-shell) | GNOME | None, ships with Dragomand |
 | [LibreOffice](#libreoffice) | LibreOffice Writer | An extension to download |
 | [KTextEditor plugin](#ktexteditor) | Kate, KWrite, KDevelop | A separate package |
+| [Krakoman](#krakoman) | Any desktop, best on KDE Plasma | A separate package |
+| [System Settings module](#system-settings) | KDE Plasma | A separate package |
+| [Plasma widget](#plasma-widget) | KDE Plasma | A separate package |
 | [Flatpak applications](#flatpak) | Sandboxed applications | One permission |
 | [Anything else](#anything-else) | Scripts, other programs | `dragomanctl` or D-Bus |
 
@@ -92,6 +95,38 @@ packaged as `dragoman-ktexteditor` in the same repository as Dragomand.
 Installation, usage and troubleshooting are on the
 [KTextEditor plugin](ktexteditor.md) page.
 
+## Krakoman {#krakoman}
+
+A graphical translator for the KDE desktop: translation as you type, in
+tabs, with the direction detected and pasted formatting kept; documents
+and subtitles; text on screen and in images, read with Tesseract; a
+history and phrasebook; a tray icon and a global shortcut that
+translates the selected text in any application. It is its own project,
+[Krakoman](https://github.com/VuteTech/krakoman), packaged as `krakoman`.
+
+Installation, usage and troubleshooting are on the
+[Krakoman](krakoman.md) page.
+
+## System Settings module {#system-settings}
+
+The **Offline Translation** page of KDE System Settings: the daemon's
+memory budget, keep-warm and network settings, applied live, and the
+installed language models with their quality, updates and removal. It
+is its own project,
+[dragoman-kcm](https://github.com/VuteTech/dragoman-kcm), packaged as
+`dragoman-kcm`.
+
+Details are on the [System Settings module](system-settings.md) page.
+
+## Plasma widget {#plasma-widget}
+
+The **Offline Translator** widget translates from the Plasma panel or
+the desktop, in a popup. It is its own project,
+[dragoman-plasmoid](https://github.com/VuteTech/dragoman-plasmoid),
+packaged as `dragoman-plasmoid`.
+
+Details are on the [Plasma widget](plasma-widget.md) page.
+
 ## Flatpak applications {#flatpak}
 
 A sandboxed client needs permission to talk to the daemon:
@@ -113,4 +148,5 @@ echo "Добро утро" | dragomanctl translate -f bg -t en
 ```
 
 For proper asynchronous clients with progress reporting, see the
-[D-Bus API](dbus-api.md).
+[D-Bus API](dbus-api.md); Qt applications can use the
+[Qt client library](libdragoman-qt.md).

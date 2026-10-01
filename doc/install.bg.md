@@ -191,3 +191,15 @@ Rust 1.85 или по-нов. Бележките за пакетиращите �
   Проверки за обновления стават само чрез `dragomanctl update` или
   незадължителния седмичен таймер:
   `systemctl --user enable dragomand-update.timer`.
+
+## Приложения за работната среда {#desktop-applications}
+
+Графичните клиенти са отделни пакети в същото хранилище като Dragomand,
+така че демонът никога не изисква зависимости от KDE:
+
+| Пакет | Какво е |
+|---|---|
+| `krakoman` | [Кракоман](krakoman.md), графичният преводач |
+| `dragoman-kcm` | [Модулът за Системни настройки](system-settings.md) |
+| `dragoman-plasmoid` | [Джаджата за Plasma](plasma-widget.md) |
+| `dragoman-ktexteditor` | [Приставката за KTextEditor](ktexteditor.md) за Kate, KWrite и KDevelop |

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SPDX-FileCopyrightText: 2026 Blagovest Petrov <blagovest@petrovs.info>
+  SPDX-FileCopyrightText: 2026 Vute Tech Ltd. <https://vute.tech>
+  SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">Krakoman</title>
+  <desc id="desc">A friendly blue kraken holding an open dictionary. Editable vector artwork with a transparent background.</desc>
+  <defs>
+    <linearGradient id="body" x1="35" y1="16" x2="90" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#39d6f1"/>
+      <stop offset=".55" stop-color="#1ab6ef"/>
+      <stop offset="1" stop-color="#0787df"/>
+    </linearGradient>
+    <linearGradient id="arms" x1="0" y1="0" x2=".8" y2="1">
+      <stop stop-color="#30d0ef"/>
+      <stop offset="1" stop-color="#0898e7"/>
+    </linearGradient>
+    <linearGradient id="frontArms" x1="0" y1="0" x2=".7" y2="1">
+      <stop stop-color="#3bd8f3"/>
+      <stop offset="1" stop-color="#13aaeb"/>
+    </linearGradient>
+    <linearGradient id="coverLeft" x1="31" y1="72" x2="65" y2="109" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173f79"/>
+      <stop offset="1" stop-color="#0c2857"/>
+    </linearGradient>
+    <linearGradient id="coverRight" x1="64" y1="78" x2="96" y2="108" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#173e78"/>
+      <stop offset="1" stop-color="#0b2550"/>
+    </linearGradient>
+    <linearGradient id="pages" x1="0" y1="0" x2="0" y2="1">
+      <stop stop-color="#fffcef"/>
+      <stop offset="1" stop-color="#f6e7c9"/>
+    </linearGradient>
+    <linearGradient id="spine" x1="60" y1="0" x2="67" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#204f90"/>
+      <stop offset="1" stop-color="#123666"/>
+    </linearGradient>
+    <path id="backTop" d="M35 85C26 94 13 89 11 80C8 69 16 62 24 63C32 64 37 72 32 78C30 80 27 79 26 77C24 74 27 72 26 71C22 68 17 71 18 77C19 84 28 85 35 80Z"/>
+    <path id="backBottom" d="M37 94C27 87 15 88 10 97C3 109 14 118 27 118C40 118 48 113 45 105C43 100 36 99 33 102C31 104 32 107 35 108C36 109 37 108 38 109C40 112 32 114 25 113C16 112 12 106 16 102C20 97 29 101 35 102Z"/>
+    <path id="frontArm" d="M39 78C33 77 26 82 23 89C19 99 21 104 26 109C31 114 40 114 45 110C49 107 49 102 46 99C43 96 39 97 37 99C35 101 36 103 38 104C40 106 33 106 31 102C27 96 32 88 40 87C46 85 46 79 39 78Z"/>
+    <path id="head" d="M64 12C44 12 30 27 30 44C30 56 35 62 40 66L41 73L87 73L88 66C94 61 98 55 98 44C98 27 84 12 64 12Z"/>
+    <clipPath id="headClip"><use xlink:href="#head"/></clipPath>
+  </defs>
+  <g id="rear-tentacles" fill="url(#arms)">
+    <use xlink:href="#backTop"/>
+    <use xlink:href="#backTop" transform="translate(128 0) scale(-1 1)"/>
+    <use xlink:href="#backBottom"/>
+    <use xlink:href="#backBottom" transform="translate(128 0) scale(-1 1)"/>
+  </g>
+  <g id="head-and-face">
+    <use xlink:href="#head" fill="url(#body)"/>
+    <path d="M87 70L53 84L98 84L105 42Z" fill="#0676c8" opacity=".17" clip-path="url(#headClip)"/>
+    <g fill="#112f59">
+      <circle cx="51" cy="54" r="3.8"/>
+      <circle cx="77" cy="54" r="3.8"/>
+    </g>
+    <path d="M59 59C61.6 61.7 66.4 61.7 69 59" fill="none" stroke="#112f59" stroke-width="3" stroke-linecap="round"/>
+  </g>
+  <g id="dictionary">
+    <path d="M32 72L38 66C48 66 57 69 64 79C70 69 80 66 90 66L96 72L64 85Z" fill="url(#pages)"/>
+    <path d="M31 71Q45 73 61 80L64 82L64 109Q62 110 59 108L34 96Z" fill="url(#coverLeft)"/>
+    <path d="M97 71Q83 73 67 80L64 82L64 109Q66 110 69 108L94 96Z" fill="url(#coverRight)"/>
+    <path d="M31 72Q44 74 61 81M67 81Q83 74 97 72" fill="none" stroke="#25528c" stroke-width="1.4" stroke-linecap="round"/>
+    <path d="M61 81Q64 82 67 81L67 109Q64 111 61 109Z" fill="url(#spine)"/>
+  </g>
+  <g id="front-tentacles" fill="url(#frontArms)">
+    <use xlink:href="#frontArm"/>
+    <use xlink:href="#frontArm" transform="translate(128 0) scale(-1 1)"/>
+  </g>
+</svg>
